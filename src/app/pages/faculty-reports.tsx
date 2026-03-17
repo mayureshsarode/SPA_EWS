@@ -1,0 +1,128 @@
+import { useState } from "react";
+import { motion } from "motion/react";
+import { FileText, Download, Filter, Calendar, BarChart3, Users, BookOpen } from "lucide-react";
+import { FacultyLayout } from "../components/faculty-layout";
+
+const mockReports = [
+  { id: 1, name: "CS301 Division A Attendance", type: "Attendance", date: "2024-03-15", size: "1.2 MB", icon: Calendar },
+  { id: 2, name: "CS302 CIE 2 Results Overview", type: "Marks", date: "2024-03-14", size: "2.1 MB", icon: BarChart3 },
+  { id: 3, name: "MA201 Defaulter List (Below 75%)", type: "Alerts", date: "2024-03-10", size: "500 KB", icon: Users },
+  { id: 4, name: "Semester Mid-Term Academic Report", type: "Comprehensive", date: "2024-03-01", size: "3.5 MB", icon: BookOpen },
+];
+
+export function FacultyReports() {
+  const [reportType, setReportType] = useState("all");
+
+  const filteredReports = mockReports.filter(r => reportType === "all" || r.type.toLowerCase() === reportType);
+
+  return (
+    <FacultyLayout activeItem="Reports">
+      <div className="space-y-6 max-w-6xl mx-auto">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">My Reports</h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Generate and export performance reports for your assigned courses</p>
+          </div>
+          <button className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-indigo-500/20 w-full sm:w-auto justify-center">
+            <FileText className="w-5 h-5" />
+            Create Report
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <motion.div
+              className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Generated Reports</h2>
+                <div className="flex items-center gap-2">
+                  <Filter className="w-4 h-4 text-slate-400" />
+                  <select
+                    value={reportType}
+                    onChange={(e) => setReportType(e.target.value)}
+                    className="text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700 dark:text-slate-300"
+                  >
+                    <option value="all">All Types</option>
+                    <option value="attendance">Attendance</option>
+                    <option value="marks">Marks</option>
+                    <option value="alerts">Alerts</option>
+                    <option value="comprehensive">Comprehensive</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                {filteredReports.map((report, i) => {
+                  const Icon = report.icon;
+                  return (
+                    <motion.div 
+                      key={report.id}
+                      className="py-4 flex items-center justify-between group"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.2, delay: i * 0.1 }}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                          <Icon className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-slate-900 dark:text-white">{report.name}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                            <span>{report.date}</span>
+                            <span>•</span>
+                            <span className="text-indigo-600 dark:text-indigo-400">{report.type}</span>
+                            <span>•</span>
+                            <span>{report.size}</span>
+                          </p>
+                        </div>
+                      </div>
+                      <button className="p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">
+                        <Download className="w-5 h-5" />
+                      </button>
+                    </motion.div>
+                  );
+                })}
+
+                {filteredReports.length === 0 && (
+                  <div className="py-8 text-center text-slate-500 dark:text-slate-400">
+                    <p className="font-medium">No reports matches the selected filter.</p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+
+          <div className="space-y-6">
+            <motion.div
+              className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+            >
+              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-4">Quick Exports</h3>
+              <div className="space-y-3">
+                <button className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left text-sm font-medium text-slate-700 dark:text-slate-300">
+                  <span className="flex items-center gap-2"><Calendar className="w-4 h-4 text-blue-500" /> Export All Attendance (CSV)</span>
+                  <Download className="w-4 h-4 text-slate-400" />
+                </button>
+                <button className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left text-sm font-medium text-slate-700 dark:text-slate-300">
+                  <span className="flex items-center gap-2"><BarChart3 className="w-4 h-4 text-violet-500" /> Export All Marks (CSV)</span>
+                  <Download className="w-4 h-4 text-slate-400" />
+                </button>
+                <button className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left text-sm font-medium text-slate-700 dark:text-slate-300">
+                  <span className="flex items-center gap-2"><Users className="w-4 h-4 text-rose-500" /> Export Defaulters (PDF)</span>
+                  <Download className="w-4 h-4 text-slate-400" />
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    </FacultyLayout>
+  );
+}
