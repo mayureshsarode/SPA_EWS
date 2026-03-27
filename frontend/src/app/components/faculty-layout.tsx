@@ -17,6 +17,7 @@ import {
   Shield,
 } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
+import { GlobalSearch } from "./global-search";
 import { NotificationBell } from "./notification-bell";
 import { useAuth } from "../contexts/auth-context";
 import { useNavigate } from "react-router";
@@ -27,6 +28,7 @@ const navItems = [
   { icon: Calendar, label: "Attendance", path: "/faculty/attendance" },
   { icon: ClipboardList, label: "CIE Marks", path: "/faculty/cie-marks" },
   { icon: Users, label: "Students", path: "/faculty/students" },
+  { icon: MessageSquare, label: "Messages", path: "/faculty/messages" },
   { icon: Shield, label: "Class Coordinator", path: "/faculty/cc" },
   { icon: AlertTriangle, label: "Alerts", path: "/faculty/alerts" },
   { icon: FileText, label: "Reports", path: "/faculty/reports" },
@@ -133,7 +135,7 @@ export function FacultyLayout({ children, activeItem }: { children: ReactNode; a
             >
               <Menu className="w-6 h-6 text-slate-600 dark:text-slate-400" />
             </button>
-            <div className="hidden md:block" />
+            <div className="hidden md:block"><GlobalSearch /></div>
             <div className="flex items-center gap-2">
               <NotificationBell />
               <ThemeToggle />

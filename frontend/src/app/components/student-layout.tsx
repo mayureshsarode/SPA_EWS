@@ -3,14 +3,11 @@ import { Link } from "react-router";
 import {
   BarChart3,
   BookOpen,
-  Calendar,
   Home,
   LogOut,
-  Menu,
   MessageSquare,
-  Bell,
   Users,
-  X,
+  FileBarChart,
 } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 import { NotificationBell } from "./notification-bell";
@@ -22,6 +19,7 @@ const navItems = [
   { icon: BookOpen, label: "Subjects", path: "/student/subjects" },
   { icon: Users, label: "Course Faculty", path: "/student/faculty" },
   { icon: MessageSquare, label: "Mentor Chat", path: "/student/messages" },
+  { icon: FileBarChart, label: "Assessments", path: "/student/documents" },
 ];
 
 export function StudentLayout({ children, activeItem }: { children: ReactNode; activeItem: string }) {

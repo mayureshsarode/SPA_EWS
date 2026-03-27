@@ -17,6 +17,7 @@ import {
   BarChart,
 } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
+import { GlobalSearch } from "./global-search";
 import { NotificationBell } from "./notification-bell";
 import { useAuth } from "../contexts/auth-context";
 import { useNavigate } from "react-router";
@@ -29,6 +30,7 @@ const navItems = [
   { icon: BookOpen, label: "Courses", path: "/admin/courses" },
   { icon: ClipboardList, label: "Assignments", path: "/admin/assignments" },
   { icon: AlertTriangle, label: "Alerts", path: "/admin/alerts" },
+  { icon: FileText, label: "Approvals", path: "/admin/approvals" },
   { icon: FileText, label: "Reports", path: "/admin/reports" },
   { icon: Activity, label: "Audit Log", path: "/admin/audit-log" },
   { icon: Settings, label: "Settings", path: "/admin/settings" },
@@ -134,7 +136,7 @@ export function AdminLayout({ children, activeItem }: { children: ReactNode; act
             >
               <Menu className="w-6 h-6 text-slate-600 dark:text-slate-400" />
             </button>
-            <div className="hidden md:block" />
+            <div className="hidden md:block"><GlobalSearch /></div>
             <div className="flex items-center gap-2">
               <NotificationBell />
               <ThemeToggle />
