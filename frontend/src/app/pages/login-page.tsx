@@ -1,170 +1,209 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { motion } from "motion/react";
-import { BarChart3, LogIn, Eye, EyeOff } from "lucide-react";
-import { ThemeToggle } from "../components/theme-toggle";
-import { useAuth, Role } from "../contexts/auth-context";
+import { Lock, Mail, Users, User, ShieldCheck, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { useAuth } from "../contexts/auth-context";
+import { api } from "../lib/api";
+
+type RoleType = "student" | "faculty" | "admin";
+
+function AlertTriangle(props: any) {
+  return (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+      <line x1="12" y1="9" x2="12" y2="13"></line>
+      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+    </svg>
+  );
+}
 
 export function LoginPage() {
-  const navigate = useNavigate();
-  const { login } = useAuth();
-  const [role, setRole] = useState<Role>("student");
+  const [role, setRole] = useState<RoleType>("student");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleLogin = (e: React.FormEvent) => {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    login(role);
-    if (role === "student") navigate("/student");
-    else if (role === "faculty") navigate("/faculty");
-    else if (role === "admin") navigate("/admin");
+    setLoading(true);
+    setError("");
+    try {
+      const user = await login(email, password, role);
+      if (role === "admin" || user.role === "ADMIN") {
+        navigate("/admin");
+      } else if (role === "faculty" || user.role === "FACULTY") {
+        navigate("/faculty");
+      } else {
+        navigate("/student");
+      }
+    } catch (err: any) {
+      setError(err.message || "Invalid credentials");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const roleConfig = {
-    student: { gradient: "from-blue-600 to-cyan-600", shadow: "shadow-blue-500/20", label: "Student Portal" },
-    faculty: { gradient: "from-indigo-600 to-violet-600", shadow: "shadow-indigo-500/20", label: "Faculty Portal" },
-    admin: { gradient: "from-emerald-600 to-teal-600", shadow: "shadow-emerald-500/20", label: "Admin Portal" },
-  }[role as string] || { gradient: "from-indigo-600 to-violet-600", shadow: "shadow-indigo-500/20", label: "Portal" };
+  const handleDemoFill = () => {
+    if (role === "admin") {
+      setEmail("admin@spa-ews.edu.in");
+      setPassword("admin123");
+    } else if (role === "faculty") {
+      setEmail("meera.kulkarni@spa-ews.edu.in");
+      setPassword("faculty123");
+    } else {
+      setEmail("ganesh.khare33@spa-ews.edu.in");
+      setPassword("student123");
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950/20 flex items-center justify-center p-6 transition-colors duration-300 relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-indigo-200/30 dark:bg-indigo-900/15 blur-3xl" />
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-violet-200/30 dark:bg-violet-900/15 blur-3xl" />
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col md:flex-row">
+      {/* Visual Section */}
+      <div className="hidden md:flex flex-1 bg-indigo-600 relative overflow-hidden items-center justify-center p-12 lg:p-24">
+        {/* Abstract Background Shapes */}
+        <div className="absolute top-0 left-0 w-full h-full">
+          <div className="absolute top-20 left-20 w-64 h-64 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
+          <div className="absolute top-40 right-20 w-64 h-64 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
+          <div className="absolute -bottom-8 left-40 w-64 h-64 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
+        </div>
 
-      {/* Theme toggle - top right */}
-      <div className="fixed top-6 right-6 z-50">
-        <ThemeToggle />
+        <div className="relative z-10 text-white max-w-xl">
+          <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 mb-8">
+            <span className="text-2xl font-black tracking-tighter">SPA</span>
+          </div>
+          <h1 className="text-4xl lg:text-5xl font-black mb-6 leading-tight">
+            Next-Generation <br />
+            <span className="text-indigo-200">Student Analytics.</span>
+          </h1>
+          <p className="text-lg text-indigo-100 font-medium mb-12 max-w-md leading-relaxed">
+            Predictive early warning systems and comprehensive mentorship coordination.
+          </p>
+
+          <div className="grid grid-cols-2 gap-6 opacity-80">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center">
+                <Users className="w-5 h-5 text-white" />
+              </div>
+              <span className="font-semibold">3,000+ Students</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center">
+                <ShieldCheck className="w-5 h-5 text-white" />
+              </div>
+              <span className="font-semibold">AI Predictors</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <motion.div
-        className="w-full max-w-md relative z-10"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        {/* Logo */}
-        <Link to="/" className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/25">
-            <BarChart3 className="w-7 h-7 text-white" />
-          </div>
-          <span className="text-2xl font-extrabold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
-            SPA-EWS
-          </span>
-        </Link>
-
-        {/* Login Card */}
-        <motion.div
-          className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-slate-200/50 dark:shadow-black/30 border border-slate-200/50 dark:border-slate-700/50 p-8"
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-        >
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">
-              Welcome Back
-            </h1>
-            <p className="text-slate-600 dark:text-slate-400">
-              Sign in to access your dashboard
-            </p>
+      {/* Login Form Section */}
+      <div className="flex-1 flex flex-col justify-center px-6 py-12 lg:px-24 bg-white dark:bg-slate-900 z-10">
+        <div className="w-full max-w-sm mx-auto">
+          {/* Mobile Header */}
+          <div className="md:hidden flex items-center gap-3 mb-10">
+            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
+              <span className="text-white font-black">SPA</span>
+            </div>
+            <span className="text-xl font-black dark:text-white">SPA-EWS</span>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-5">
-            {/* Role Selection */}
-            <div>
-              <label htmlFor="role" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                Role
-              </label>
-              <div className="grid grid-cols-3 gap-2">
+          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">Welcome Back</h2>
+          <p className="text-slate-500 dark:text-slate-400 font-medium mb-8">Sign in to your account to continue</p>
+
+          <AnimatePresence mode="popLayout">
+            <motion.div key="login-form" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
+              {/* Role Tabs */}
+              <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl mb-8">
                 {(["student", "faculty", "admin"] as const).map((r) => (
                   <button
                     key={r}
                     type="button"
-                    onClick={() => setRole(r)}
-                    className={`px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 ${
-                      role === r
-                        ? `bg-gradient-to-r ${roleConfig.gradient} text-white shadow-lg ${roleConfig.shadow}`
-                        : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
-                    }`}
+                    onClick={() => { setRole(r); setError(""); }}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 text-sm font-bold rounded-lg transition-all capitalize
+                      ${role === r
+                        ? "bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-white"
+                        : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                      }
+                    `}
                   >
-                    {r.charAt(0).toUpperCase() + r.slice(1)}
+                    {r === "student" && <User className="w-4 h-4" />}
+                    {r === "faculty" && <Users className="w-4 h-4" />}
+                    {r === "admin" && <ShieldCheck className="w-4 h-4" />}
+                    <span className="hidden sm:inline">{r}</span>
                   </button>
                 ))}
               </div>
-            </div>
 
-            {/* Email */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="your.email@university.edu"
-                className="w-full px-4 py-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all duration-200"
-              />
-            </div>
+              <form className="space-y-5" onSubmit={handleLogin}>
+                {error && (
+                  <div className="p-3 bg-red-50 text-red-600 text-sm font-bold rounded-xl flex gap-2">
+                    <AlertTriangle className="w-4 h-4 mt-0.5" /> {error}
+                  </div>
+                )}
+                <div className="space-y-1">
+                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Email Address</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                      <Mail className="h-5 w-5 text-slate-400" />
+                    </div>
+                    <input
+                      type="email"
+                      required
+                      className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-slate-900 dark:text-white dark:placeholder-slate-500"
+                      placeholder={`${role}@spa-ews.edu.in`}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </div>
+                </div>
 
-            {/* Password */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  id="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full px-4 py-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all duration-200 pr-12"
-                />
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Password</label>
+                    <button type="button" className="text-sm font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400">
+                      Forgot password?
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                      <Lock className="h-5 w-5 text-slate-400" />
+                    </div>
+                    <input
+                      type="password"
+                      required
+                      className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-slate-900 dark:text-white dark:placeholder-slate-500"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                  </div>
+                </div>
+
                 <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-indigo-500/30 transition-all flex justify-center items-center gap-2 mt-4"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {loading && <Loader2 className="w-5 h-5 animate-spin" />}
+                  Sign In
                 </button>
+              </form>
+
+              <div className="mt-8 pt-8 border-t border-slate-200 dark:border-slate-800 text-center">
+                <button onClick={handleDemoFill} className="text-sm font-semibold text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-lg">
+                  Autofill Demo Credentials
+                </button>
+                <p className="mt-4 text-xs text-slate-500 font-medium">Admin: admin@spa-ews.edu.in (admin123) | Faculty: meera.kulkarni@spa-ews.edu.in (faculty123) | Student: ganesh.khare33@spa-ews.edu.in (student123)</p>
               </div>
-            </div>
+            </motion.div>
+          </AnimatePresence>
 
-            {/* Forgot Password */}
-            <div className="flex items-center justify-end">
-              <a href="#" className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium">
-                Forgot password?
-              </a>
-            </div>
-
-            {/* Login Button */}
-            <button
-              type="submit"
-              className={`w-full py-4 px-4 rounded-xl bg-gradient-to-r ${roleConfig.gradient} text-white hover:shadow-xl ${roleConfig.shadow} hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 font-semibold text-base`}
-            >
-              <LogIn className="w-5 h-5" />
-              Sign In
-            </button>
-          </form>
-
-          {/* Demo Info */}
-          <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700/50">
-            <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
-              Demo mode — Select any role and click Sign In
-            </p>
-          </div>
-        </motion.div>
-
-        {/* Back to Home */}
-        <div className="text-center mt-6">
-          <Link to="/" className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
-            ← Back to home
-          </Link>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

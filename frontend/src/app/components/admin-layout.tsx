@@ -7,6 +7,7 @@ import {
   BookOpen,
   AlertTriangle,
   FileText,
+  BarChart3 as ReportsIcon,
   Activity,
   Settings,
   LogOut,
@@ -31,7 +32,7 @@ const navItems = [
   { icon: ClipboardList, label: "Assignments", path: "/admin/assignments" },
   { icon: AlertTriangle, label: "Alerts", path: "/admin/alerts" },
   { icon: FileText, label: "Approvals", path: "/admin/approvals" },
-  { icon: FileText, label: "Reports", path: "/admin/reports" },
+  { icon: ReportsIcon, label: "Reports", path: "/admin/reports" },
   { icon: Activity, label: "Audit Log", path: "/admin/audit-log" },
   { icon: Settings, label: "Settings", path: "/admin/settings" },
 ];

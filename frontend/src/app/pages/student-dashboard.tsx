@@ -28,7 +28,8 @@ import {
 import { AnimatedCounter } from "../components/animated-counter";
 import { useAuth } from "../contexts/auth-context";
 import { StudentLayout } from "../components/student-layout";
-import { faculties } from "../data/mock-data";
+import { api } from "../lib/api";
+import { useState, useEffect } from "react";
 
 // Mock data
 const performanceData = [
@@ -55,13 +56,32 @@ const pieData = [
 
 export function StudentDashboard() {
   const { user } = useAuth();
-  const student = user as any;
-  const mentor = faculties.find(f => f.id === student?.mentorId);
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const currentAttendance = student?.attendance ?? 65;
-  const currentMarks = student?.internalMarks ?? 65;
-  const status: "safe" | "warning" | "critical" = student?.status || "warning";
-  const studentSubjects = student?.subjects || subjectData;
+  useEffect(() => {
+    api('/students/me/dashboard')
+      .then(res => setData(res.data))
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const student = data || {};
+  const currentAttendance = student.attendance ?? 0;
+  const currentMarks = student.internalMarks ?? 0;
+  const status: "safe" | "warning" | "critical" = student.status || "safe";
+  const studentSubjects = student.subjects || [];
+  const mentor = student.mentor || null;
+
+  // Pie chart counts
+  const pieData = studentSubjects.length > 0 ? [
+    { name: "Present", value: currentAttendance, color: "#6366f1" },
+    { name: "Absent", value: 100 - currentAttendance, color: "#e2e8f0" },
+  ] : [
+    { name: "Present", value: 0, color: "#6366f1" },
+    { name: "Absent", value: 100, color: "#e2e8f0" }
+  ];
 
   const getStatusConfig = (status: string) => {
     if (status === "safe") {
@@ -100,9 +120,29 @@ export function StudentDashboard() {
   const statusConfig = getStatusConfig(status);
   const StatusIcon = statusConfig.icon;
 
+  if (loading) {
+    return (
+      <StudentLayout activeItem="Dashboard">
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      </StudentLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <StudentLayout activeItem="Dashboard">
+        <div className="p-8 text-center text-rose-500 font-medium bg-rose-50 rounded-xl my-8 mx-auto max-w-2xl border border-rose-200">
+          Failed to load dashboard: {error}
+        </div>
+      </StudentLayout>
+    );
+  }
+
   return (
     <StudentLayout activeItem="Dashboard">
-      <div className="max-w-6xl mx-auto py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
         {/* Welcome Section */}
         <motion.div
           className="mb-8"
@@ -119,11 +159,11 @@ export function StudentDashboard() {
                 Welcome, {student?.name || "John Doe"}
               </h1>
               <p className="text-slate-600 dark:text-slate-400 flex flex-wrap items-center gap-1.5 mt-1">
-                <span>ID: {student?.id || "S12345"}</span>
+                <span>ID: {student.prnNumber || student.id?.substring(0,8)}</span>
                 <span>•</span>
-                <span>{student?.department || "Computer Science"}</span>
+                <span>{student.department || "Unknown Dept"}</span>
                 <span>•</span>
-                <span>Division {student?.division || "A"}</span>
+                <span>Division {student.division || "A"}</span>
                 {mentor && (
                   <>
                     <span>•</span>

@@ -1,34 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { FacultyLayout } from "../components/faculty-layout";
 import { useAuth } from "../contexts/auth-context";
+import { api } from "../lib/api";
 import {
   Users, CheckCircle, AlertTriangle, ShieldAlert, Upload, X,
-  FileText, CalendarDays, Send, ChevronDown, Info,
+  FileText, CalendarDays, Send, Info, Loader2,
 } from "lucide-react";
 import { AnimatedCounter } from "../components/animated-counter";
-import { students } from "../data/mock-data";
-
-// Division students (mocked as all mentees for this demo)
-const divisionStudents = students.slice(0, 10);
 
 type LeaveType = "DL" | "EXEMPTION";
 
 interface SubmittedRequest {
   id: string;
-  type: LeaveType;
+  leaveType: LeaveType;
   reason: string;
-  dates: string;
-  studentCount: number;
-  status: "pending" | "approved" | "rejected";
+  createdAt: string;
+  status: string;
+  student?: { name: string };
+  requester?: { name: string };
 }
 
-const mockPastRequests: SubmittedRequest[] = [
-  { id: "R001", type: "DL", reason: "IEEE Conference — Paper Presentation", dates: "Mar 15, 2026", studentCount: 3, status: "approved" },
-  { id: "R002", type: "EXEMPTION", reason: "National Sports Tournament", dates: "Mar 5 – Mar 7, 2026", studentCount: 2, status: "pending" },
-];
-
-const statusStyle = {
+const statusStyle: Record<string, string> = {
+  PENDING: "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400",
+  APPROVED: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400",
+  REJECTED: "bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400",
+  // fallback lowercase
   pending: "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400",
   approved: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400",
   rejected: "bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400",
@@ -37,6 +34,32 @@ const statusStyle = {
 export function FacultyClassCoordinator() {
   const { user } = useAuth();
   const faculty = user as any;
+
+  // Live state
+  const [divisionStudents, setDivisionStudents] = useState<any[]>([]);
+  const [kpis, setKpis] = useState({ total: 0, safe: 0, warning: 0, critical: 0 });
+  const [requests, setRequests] = useState<SubmittedRequest[]>([]);
+  const [loadingStudents, setLoadingStudents] = useState(true);
+
+  useEffect(() => {
+    // Fetch mentees for student selector
+    api('/faculty/me/dashboard')
+      .then(res => {
+        const mentees = res.data.mentees || [];
+        setDivisionStudents(mentees);
+        const safe = mentees.filter((s: any) => s.riskLevel === 'SAFE').length;
+        const warning = mentees.filter((s: any) => s.riskLevel === 'WARNING').length;
+        const critical = mentees.filter((s: any) => s.riskLevel === 'CRITICAL').length;
+        setKpis({ total: mentees.length, safe, warning, critical });
+      })
+      .catch(console.error)
+      .finally(() => setLoadingStudents(false));
+
+    // Fetch past leave requests submitted by this faculty
+    api('/leaves')
+      .then(res => setRequests(res.data || []))
+      .catch(console.error);
+  }, []);
 
   // DL Form state
   const [showForm, setShowForm] = useState(false);
@@ -47,7 +70,6 @@ export function FacultyClassCoordinator() {
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [fileName, setFileName] = useState("");
   const [submitted, setSubmitted] = useState(false);
-  const [requests, setRequests] = useState(mockPastRequests);
 
   const toggleStudent = (id: string) =>
     setSelectedStudents((prev) =>
@@ -55,34 +77,38 @@ export function FacultyClassCoordinator() {
     );
 
   const selectAll = () =>
-    setSelectedStudents(divisionStudents.map((s) => s.id));
+    setSelectedStudents(divisionStudents.map((s) => s.userId || s.id));
 
   const clearAll = () => setSelectedStudents([]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!reason || !dateFrom || selectedStudents.length === 0) return;
-    const label = dateFrom === dateTo || !dateTo ? dateFrom : `${dateFrom} – ${dateTo}`;
-    setRequests((prev) => [
-      {
-        id: `R${Date.now()}`,
-        type: leaveType,
-        reason,
-        dates: label,
-        studentCount: selectedStudents.length,
-        status: "pending",
-      },
-      ...prev,
-    ]);
-    // Reset
-    setReason("");
-    setDateFrom("");
-    setDateTo("");
-    setSelectedStudents([]);
-    setFileName("");
-    setShowForm(false);
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 4000);
+    try {
+      await api('/leaves/request', {
+        method: 'POST',
+        body: JSON.stringify({
+          leaveType,
+          reason,
+          studentIds: selectedStudents,
+        })
+      });
+      // Refresh leave requests
+      const res = await api('/leaves');
+      setRequests(res.data || []);
+      // Reset form
+      setReason("");
+      setDateFrom("");
+      setDateTo("");
+      setSelectedStudents([]);
+      setFileName("");
+      setShowForm(false);
+      setSubmitted(true);
+      setTimeout(() => setSubmitted(false), 4000);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to submit leave request');
+    }
   };
 
   return (
@@ -123,10 +149,10 @@ export function FacultyClassCoordinator() {
         {/* Division KPIs */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
           {[
-            { label: "Total Students", value: 60, icon: Users, gradient: "from-indigo-600 to-violet-600" },
-            { label: "Safe Zone", value: 45, icon: CheckCircle, gradient: "from-emerald-500 to-teal-500" },
-            { label: "Warning Zone", value: 10, icon: AlertTriangle, gradient: "from-amber-500 to-orange-500" },
-            { label: "Critical Zone", value: 5, icon: ShieldAlert, gradient: "from-rose-500 to-red-500" },
+            { label: "Total Mentees", value: kpis.total, icon: Users, gradient: "from-indigo-600 to-violet-600" },
+            { label: "Safe Zone", value: kpis.safe, icon: CheckCircle, gradient: "from-emerald-500 to-teal-500" },
+            { label: "Warning Zone", value: kpis.warning, icon: AlertTriangle, gradient: "from-amber-500 to-orange-500" },
+            { label: "Critical Zone", value: kpis.critical, icon: ShieldAlert, gradient: "from-rose-500 to-red-500" },
           ].map((stat, i) => {
             const Icon = stat.icon;
             return (
@@ -204,17 +230,19 @@ export function FacultyClassCoordinator() {
             </div>
           ) : (
             <div className="space-y-3">
-              {requests.map((req) => (
+              {requests.map((req: any) => (
                 <div key={req.id} className="flex flex-wrap items-center gap-3 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-sm text-slate-900 dark:text-white">{req.reason}</div>
-                    <div className="text-xs text-slate-500 mt-0.5">{req.dates} · {req.studentCount} students</div>
+                    <div className="text-xs text-slate-500 mt-0.5">
+                      {req.student?.name || 'Multiple students'} · {new Date(req.createdAt).toLocaleDateString()}
+                    </div>
                   </div>
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${statusStyle[req.status]}`}>
-                    {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${statusStyle[req.status] || statusStyle['PENDING']}`}>
+                    {req.status?.charAt(0) + req.status?.slice(1).toLowerCase()}
                   </span>
-                  <span className={`px-2 py-0.5 rounded-md text-xs font-bold ${req.type === "DL" ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400" : "bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400"}`}>
-                    {req.type === "DL" ? "Duty Leave" : "Exemption"}
+                  <span className={`px-2 py-0.5 rounded-md text-xs font-bold ${req.leaveType === "DL" ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400" : "bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400"}`}>
+                    {req.leaveType === "DL" ? "Duty Leave" : "Exemption"}
                   </span>
                 </div>
               ))}
@@ -316,21 +344,29 @@ export function FacultyClassCoordinator() {
                     </div>
                   </div>
                   <div className="max-h-40 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-                    {divisionStudents.map((s) => (
-                      <label key={s.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-white dark:hover:bg-slate-800 cursor-pointer transition-colors">
-                        <input
-                          type="checkbox"
-                          checked={selectedStudents.includes(s.id)}
-                          onChange={() => toggleStudent(s.id)}
-                          className="w-4 h-4 rounded accent-indigo-600"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <span className="text-sm font-medium text-slate-900 dark:text-white">{s.name}</span>
-                          <span className="ml-2 text-xs text-slate-400">{s.id}</span>
-                        </div>
-                        {selectedStudents.includes(s.id) && <CheckCircle className="w-4 h-4 text-indigo-500 flex-shrink-0" />}
-                      </label>
-                    ))}
+                    {loadingStudents ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="w-5 h-5 animate-spin text-indigo-400" />
+                      </div>
+                    ) : divisionStudents.length === 0 ? (
+                      <div className="px-4 py-6 text-center text-sm text-slate-500">No mentees found</div>
+                    ) : (
+                      divisionStudents.map((s: any) => (
+                        <label key={s.userId || s.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-white dark:hover:bg-slate-800 cursor-pointer transition-colors">
+                          <input
+                            type="checkbox"
+                            checked={selectedStudents.includes(s.userId || s.id)}
+                            onChange={() => toggleStudent(s.userId || s.id)}
+                            className="w-4 h-4 rounded accent-indigo-600"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <span className="text-sm font-medium text-slate-900 dark:text-white">{s.name}</span>
+                            <span className="ml-2 text-xs text-slate-400">{s.prnNumber || s.id}</span>
+                          </div>
+                          {selectedStudents.includes(s.userId || s.id) && <CheckCircle className="w-4 h-4 text-indigo-500 flex-shrink-0" />}
+                        </label>
+                      ))
+                    )}
                   </div>
                   {selectedStudents.length > 0 && (
                     <p className="mt-1.5 text-xs text-indigo-600 dark:text-indigo-400 font-medium">{selectedStudents.length} student{selectedStudents.length !== 1 ? "s" : ""} selected</p>

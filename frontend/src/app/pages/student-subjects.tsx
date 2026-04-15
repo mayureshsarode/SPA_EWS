@@ -8,7 +8,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -19,17 +19,27 @@ import {
   CartesianGrid,
   Cell,
 } from "recharts";
-import { students } from "../data/mock-data";
+import { api } from "../lib/api";
 import { StudentLayout } from "../components/student-layout";
 
 export function StudentSubjects() {
-  const student = students[0]; // Current student (mock)
+  const [data, setData] = useState<any>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const chartData = student.subjects.map((s) => ({
+  useEffect(() => {
+    api('/students/me/dashboard')
+      .then(res => setData(res.data))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const subjects = data?.subjects || [];
+
+  const chartData = subjects.map((s: any) => ({
     name: s.name,
     attendance: s.attendance,
-    avg: Math.round((s.cie1 + s.cie2 + s.cie3) / 3),
+    avg: s.cieMarks || 0,
     color: s.attendance >= 75 ? "#10b981" : s.attendance >= 60 ? "#f59e0b" : "#ef4444",
   }));
 
@@ -40,6 +50,11 @@ export function StudentSubjects() {
           <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">Subject Breakdown</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">Detailed performance by subject</p>
         </div>
+
+        {loading ? (
+           <div className="flex justify-center p-8"><div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div></div>
+        ) : (
+          <>
 
         {/* Overview Chart */}
         <motion.div
@@ -76,11 +91,11 @@ export function StudentSubjects() {
 
         {/* Subject Cards */}
         <div className="space-y-4">
-          {student.subjects.map((subject, i) => {
-            const avg = Math.round((subject.cie1 + subject.cie2 + subject.cie3) / 3);
-            const avgPercent = Math.round((avg / subject.maxMarks) * 100);
+          {subjects.map((subject: any, i: number) => {
+            const avg = subject.cieMarks || 0;
+            const avgPercent = avg;
             const isExpanded = expanded === subject.code;
-            const trend = subject.cie3 > subject.cie1 ? "up" : subject.cie3 < subject.cie1 ? "down" : "flat";
+            const trend = "flat";
 
             return (
               <motion.div
@@ -115,8 +130,8 @@ export function StudentSubjects() {
                         <div className="text-xs text-slate-500 dark:text-slate-400">Attendance</div>
                       </div>
                       <div className="text-right">
-                        <div className="text-sm font-bold text-slate-900 dark:text-white">{avg}/{subject.maxMarks}</div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400">CIE Avg</div>
+                        <div className="text-sm font-bold text-slate-900 dark:text-white">{avg}/100</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400">CIE Total</div>
                       </div>
                       <div className={`flex items-center gap-1 text-sm font-medium ${
                         trend === "up" ? "text-emerald-600 dark:text-emerald-400" : trend === "down" ? "text-rose-600 dark:text-rose-400" : "text-slate-500"
@@ -146,7 +161,7 @@ export function StudentSubjects() {
                         <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50">
                           <div className="flex items-center justify-between mb-3 text-sm border-b border-slate-200 dark:border-slate-700 pb-3">
                             <span className="text-slate-600 dark:text-slate-400">Total Classes Conducted</span>
-                            <span className="font-bold text-slate-900 dark:text-white">40</span>
+                            <span className="font-bold text-slate-900 dark:text-white">{subject.lecturesConducted || 0}</span>
                           </div>
                           
                           <div className="space-y-2 mb-4">
@@ -155,15 +170,15 @@ export function StudentSubjects() {
                                 <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Present
                               </span>
                               <span className="font-medium text-slate-900 dark:text-white">
-                                {Math.floor(40 * (subject.attendance / 100)) - (subject.code === 'CS301' ? 2 : 0)}
+                                {subject.lecturesAttended || 0}
                               </span>
                             </div>
                             <div className="flex items-center justify-between text-sm">
                               <span className="flex items-center gap-2 text-slate-600 dark:text-slate-400" title="Duty Leave">
-                                <span className="w-2 h-2 rounded-full bg-indigo-500"></span> Duty Leave (DL)
+                                <span className="w-2 h-2 rounded-full bg-indigo-500"></span> Duty Leave (DL) / Exempted
                               </span>
                               <span className="font-medium text-slate-900 dark:text-white">
-                                {subject.code === 'CS301' ? 2 : 0}
+                                {(subject.dutyLeaves || 0) + (subject.exempted || 0)}
                               </span>
                             </div>
                             <div className="flex items-center justify-between text-sm">
@@ -171,7 +186,7 @@ export function StudentSubjects() {
                                 <span className="w-2 h-2 rounded-full bg-rose-500"></span> Absent
                               </span>
                               <span className="font-medium text-slate-900 dark:text-white">
-                                {40 - Math.floor(40 * (subject.attendance / 100))}
+                                {(subject.lecturesConducted || 0) - (subject.lecturesAttended || 0) - (subject.dutyLeaves || 0) - (subject.exempted || 0)}
                               </span>
                             </div>
                           </div>
@@ -203,26 +218,20 @@ export function StudentSubjects() {
                           CIE Marks
                         </div>
                         <div className="space-y-2">
-                          {[
-                            { label: "CIE 1", marks: subject.cie1 },
-                            { label: "CIE 2", marks: subject.cie2 },
-                            { label: "CIE 3", marks: subject.cie3 },
-                          ].map((cie) => (
-                            <div key={cie.label} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50">
-                              <span className="text-sm text-slate-600 dark:text-slate-400">{cie.label}</span>
+                            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+                              <span className="text-sm text-slate-600 dark:text-slate-400">CIE Aggregate</span>
                               <div className="flex items-center gap-2">
-                                <div className="w-16 bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                                <div className="w-32 bg-slate-200 dark:bg-slate-700 rounded-full h-2">
                                   <div
                                     className={`h-2 rounded-full ${
-                                      (cie.marks / subject.maxMarks) * 100 >= 60 ? "bg-indigo-500" : "bg-amber-500"
+                                      avg >= 60 ? "bg-indigo-500" : "bg-amber-500"
                                     }`}
-                                    style={{ width: `${(cie.marks / subject.maxMarks) * 100}%` }}
+                                    style={{ width: `${avg}%` }}
                                   />
                                 </div>
-                                <span className="font-bold text-sm text-slate-900 dark:text-white w-12 text-right">{cie.marks}/{subject.maxMarks}</span>
+                                <span className="font-bold text-sm text-slate-900 dark:text-white w-12 text-right">{avg}/100</span>
                               </div>
                             </div>
-                          ))}
                         </div>
                       </div>
                     </div>
@@ -232,6 +241,8 @@ export function StudentSubjects() {
             );
           })}
         </div>
+          </>
+        )}
       </div>
     </StudentLayout>
   );

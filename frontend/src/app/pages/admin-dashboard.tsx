@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router";
+import { api } from "../lib/api";
 import { motion } from "motion/react";
 import {
   LayoutDashboard,
@@ -27,39 +28,73 @@ import {
 import { AnimatedCounter } from "../components/animated-counter";
 import { AdminLayout } from "../components/admin-layout";
 
-const pieData = [
-  { name: "Safe", value: 316, color: "#10b981" },
-  { name: "Warning", value: 89, color: "#f59e0b" },
-  { name: "Critical", value: 45, color: "#ef4444" },
-];
-
-const recentActivity = [
-  { action: "Attendance marked", user: "Prof. Jane Doe", time: "2 min ago", type: "attendance" },
-  { action: "CIE marks uploaded", user: "Dr. John Smith", time: "15 min ago", type: "marks" },
-  { action: "Threshold updated", user: "Admin Smith", time: "1 hr ago", type: "setting" },
-  { action: "New student added", user: "Admin Smith", time: "2 hrs ago", type: "user" },
-  { action: "Alert generated", user: "System", time: "3 hrs ago", type: "alert" },
-];
-
 export function AdminDashboard() {
   const [attendanceThreshold, setAttendanceThreshold] = useState(75);
   const [marksThreshold, setMarksThreshold] = useState(60);
+  const [stats, setStats] = useState<any>(null);
+  const [activities, setActivities] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const totalStudents = 450;
-  const totalFaculty = 32;
-  const activeAlerts = 67;
-  const departments = 12;
+  useEffect(() => {
+    Promise.all([
+      api('/admin/dashboard'),
+      api('/admin/audit-log?limit=5')
+    ]).then(([dashRes, logRes]) => {
+      setStats(dashRes.data);
+      if (logRes.data?.logs) {
+        setActivities(logRes.data.logs);
+      }
+    }).catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
 
-  const handleSaveThresholds = () => alert("Thresholds saved successfully!");
+  const totalStudents = stats?.totalStudents || 0;
+  const totalFaculty = stats?.totalFaculty || 0;
+  const activeAlerts = stats?.activeAlerts || 0;
+  const departments = stats?.totalDepartments || 0;
+
+  const pieData = stats?.riskDistribution ? [
+    { name: "Safe", value: stats.riskDistribution.safe, color: "#10b981" },
+    { name: "Warning", value: stats.riskDistribution.warning, color: "#f59e0b" },
+    { name: "Critical", value: stats.riskDistribution.critical, color: "#ef4444" },
+  ] : [
+    { name: "Safe", value: 1, color: "#10b981" },
+  ];
+
+  const handleSaveThresholds = async () => {
+    try {
+      await api('/admin/thresholds', {
+        method: "PUT",
+        body: JSON.stringify({
+          attendance_threshold: attendanceThreshold,
+          marks_threshold: marksThreshold
+        })
+      });
+      alert("Thresholds saved successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to save thresholds");
+    }
+  };
   const handleExportReport = () => alert("Exporting report...");
 
-  const getActivityIcon = (type: string) => {
-    if (type === "attendance") return { icon: BarChart3, gradient: "from-blue-500 to-cyan-500" };
-    if (type === "marks") return { icon: FileText, gradient: "from-violet-500 to-purple-500" };
-    if (type === "setting") return { icon: Settings, gradient: "from-amber-500 to-orange-500" };
-    if (type === "user") return { icon: UserPlus, gradient: "from-emerald-500 to-teal-500" };
+  const getActivityIcon = (action: string) => {
+    if (action.includes("ATTENDANCE")) return { icon: BarChart3, gradient: "from-blue-500 to-cyan-500" };
+    if (action.includes("MARKS")) return { icon: FileText, gradient: "from-violet-500 to-purple-500" };
+    if (action.includes("THRESHOLDS")) return { icon: Settings, gradient: "from-amber-500 to-orange-500" };
+    if (action.includes("USER")) return { icon: UserPlus, gradient: "from-emerald-500 to-teal-500" };
     return { icon: AlertTriangle, gradient: "from-rose-500 to-red-500" };
   };
+
+  if (loading) {
+     return (
+      <AdminLayout activeItem="Dashboard">
+        <div className="flex justify-center items-center min-h-[50vh]">
+          <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      </AdminLayout>
+     );
+  }
 
   return (
     <AdminLayout activeItem="Dashboard">
@@ -168,27 +203,33 @@ export function AdminDashboard() {
                 </div>
               </div>
               <div className="space-y-4">
-                {recentActivity.map((item, i) => {
-                  const activityConfig = getActivityIcon(item.type);
-                  const ActivityIcon = activityConfig.icon;
-                  return (
-                    <motion.div
-                      key={i}
-                      className="flex items-start gap-3"
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3, delay: 0.5 + i * 0.1 }}
-                    >
-                      <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${activityConfig.gradient} flex items-center justify-center flex-shrink-0 shadow-sm`}>
-                        <ActivityIcon className="w-4 h-4 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-slate-900 dark:text-white">{item.action}</div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400">{item.user} • {item.time}</div>
-                      </div>
-                    </motion.div>
-                  );
-                })}
+                {activities.length === 0 ? (
+                  <div className="text-sm text-slate-500 p-4 text-center">No recent activity</div>
+                ) : (
+                  activities.map((item: any, i: number) => {
+                    const activityConfig = getActivityIcon(item.action);
+                    const ActivityIcon = activityConfig.icon;
+                    return (
+                      <motion.div
+                        key={item.id}
+                        className="flex items-start gap-3"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: 0.5 + i * 0.1 }}
+                      >
+                        <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${activityConfig.gradient} flex items-center justify-center flex-shrink-0 shadow-sm`}>
+                          <ActivityIcon className="w-4 h-4 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-slate-900 dark:text-white truncate">{item.action.replace(/_/g, " ")}</div>
+                          <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                            {item.user?.name || "System"} • {new Date(item.createdAt).toLocaleDateString()}
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })
+                )}
               </div>
             </motion.div>
           </div>

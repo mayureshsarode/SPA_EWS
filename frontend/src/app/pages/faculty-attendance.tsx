@@ -9,37 +9,85 @@ import {
   XCircle,
   Briefcase,
 } from "lucide-react";
-import { students, faculties, getStudentsByCourse } from "../data/mock-data";
+import { api } from "../lib/api";
 import { FacultyLayout } from "../components/faculty-layout";
+import { useEffect } from "react";
 
 export function FacultyAttendance() {
-  const faculty = faculties[0]; // Current faculty
-  const [selectedCourse, setSelectedCourse] = useState(faculty.courses[0].courseCode);
-  const [selectedDivision, setSelectedDivision] = useState(faculty.courses[0].divisions[0]);
+  const [courses, setCourses] = useState<any[]>([]);
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("");
+  const [divisionStudents, setDivisionStudents] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
-  const [attendanceMap, setAttendanceMap] = useState<Record<string, "present" | "absent" | "dl">>({});
+  const [attendanceMap, setAttendanceMap] = useState<Record<string, "PRESENT" | "ABSENT" | "DL">>({});
   const [submitted, setSubmitted] = useState(false);
+  const [loadingCourses, setLoadingCourses] = useState(true);
+  const [loadingStudents, setLoadingStudents] = useState(false);
 
-  const currentCourse = faculty.courses.find((c) => c.courseCode === selectedCourse);
-  const divisionStudents = getStudentsByCourse(selectedCourse, selectedDivision);
+  // 1. Fetch faculty courses
+  useEffect(() => {
+    api('/faculty/me/dashboard')
+      .then(res => {
+        const facCourses = res.data.courses || [];
+        setCourses(facCourses);
+        if (facCourses.length > 0) {
+          setSelectedCourseId(facCourses[0].id);
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoadingCourses(false));
+  }, []);
 
-  const setAttendance = (studentId: string, status: "present" | "absent" | "dl") => {
-    setAttendanceMap((prev) => ({ ...prev, [studentId]: status }));
+  // 2. Fetch students when course changes
+  useEffect(() => {
+    if (!selectedCourseId) return;
+    setLoadingStudents(true);
+    api(`/attendance/${selectedCourseId}/students`)
+      .then(res => {
+        setDivisionStudents(res.data.students || []);
+        setAttendanceMap({});
+      })
+      .catch(console.error)
+      .finally(() => setLoadingStudents(false));
+  }, [selectedCourseId]);
+
+  const currentCourse = courses.find((c) => c.id === selectedCourseId);
+
+  const setAttendance = (enrollmentId: string, status: "PRESENT" | "ABSENT" | "DL") => {
+    setAttendanceMap((prev) => ({ ...prev, [enrollmentId]: status }));
   };
 
-  const markAll = (status: "present" | "absent" | "dl") => {
-    const map: Record<string, "present" | "absent" | "dl"> = {};
-    divisionStudents.forEach((s) => (map[s.id] = status));
+  const markAll = (status: "PRESENT" | "ABSENT" | "DL") => {
+    const map: Record<string, "PRESENT" | "ABSENT" | "DL"> = {};
+    divisionStudents.forEach((s) => (map[s.enrollmentId] = status));
     setAttendanceMap(map);
   };
 
-  const presentCount = divisionStudents.filter((s) => attendanceMap[s.id] === "present").length;
-  const dlCount = divisionStudents.filter((s) => attendanceMap[s.id] === "dl").length;
+  const presentCount = divisionStudents.filter((s) => attendanceMap[s.enrollmentId] === "PRESENT").length;
+  const dlCount = divisionStudents.filter((s) => attendanceMap[s.enrollmentId] === "DL").length;
   const absentCount = divisionStudents.length - presentCount - dlCount;
 
-  const handleSubmit = () => {
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 3000);
+  const handleSubmit = async () => {
+    if (!selectedCourseId || divisionStudents.length === 0) return;
+    
+    // Build payload
+    const entries = divisionStudents.map(s => ({
+      enrollmentId: s.enrollmentId,
+      status: attendanceMap[s.enrollmentId] || "ABSENT" // default missing to ABSENT
+    }));
+
+    try {
+      await api(`/attendance/${selectedCourseId}/mark`, {
+        method: "POST",
+        body: JSON.stringify({ entries })
+      });
+      setSubmitted(true);
+      setTimeout(() => setSubmitted(false), 3000);
+      
+      // Optionally refresh students here
+    } catch (err) {
+      console.error(err);
+      alert("Failed to submit attendance");
+    }
   };
 
   return (
@@ -60,33 +108,23 @@ export function FacultyAttendance() {
         >
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Course</label>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Course Offering</label>
               <select
-                value={selectedCourse}
-                onChange={(e) => {
-                  setSelectedCourse(e.target.value);
-                  const course = faculty.courses.find((c) => c.courseCode === e.target.value);
-                  if (course) setSelectedDivision(course.divisions[0]);
-                  setAttendanceMap({});
-                }}
+                value={selectedCourseId}
+                onChange={(e) => setSelectedCourseId(e.target.value)}
+                disabled={loadingCourses}
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
-                {faculty.courses.map((c) => (
-                  <option key={c.courseCode} value={c.courseCode}>{c.courseCode} — {c.courseName}</option>
+                {courses.map((c: any) => (
+                  <option key={c.id} value={c.id}>{c.courseCode} — {c.courseName} (Div {c.division})</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Division</label>
-              <select
-                value={selectedDivision}
-                onChange={(e) => { setSelectedDivision(e.target.value); setAttendanceMap({}); }}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                {currentCourse?.divisions.map((d) => (
-                  <option key={d} value={d}>Division {d}</option>
-                ))}
-              </select>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Semester</label>
+              <div className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                {currentCourse ? `Semester ${currentCourse.semester}` : "N/A"}
+              </div>
             </div>
             <div>
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Date</label>
@@ -126,13 +164,13 @@ export function FacultyAttendance() {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => markAll("present")}
+              onClick={() => markAll("PRESENT")}
               className="px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors"
             >
               Mark All Present
             </button>
             <button
-              onClick={() => markAll("absent")}
+              onClick={() => markAll("ABSENT")}
               className="px-4 py-2 rounded-xl bg-rose-600 text-white text-sm font-semibold hover:bg-rose-700 transition-colors"
             >
               Mark All Absent
@@ -147,15 +185,20 @@ export function FacultyAttendance() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.2 }}
         >
-          <div className="divide-y divide-slate-200 dark:divide-slate-800">
+          <div className="divide-y divide-slate-200 dark:divide-slate-800 relative">
+            {loadingStudents && (
+              <div className="absolute inset-0 z-10 bg-white/50 dark:bg-slate-900/50 flex items-center justify-center backdrop-blur-sm">
+                 <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            )}
             {divisionStudents.map((student, i) => {
-              const status = attendanceMap[student.id] || "absent";
+              const status = attendanceMap[student.enrollmentId] || "ABSENT";
               return (
                 <motion.div
-                  key={student.id}
+                  key={student.enrollmentId}
                   className={`flex items-center justify-between p-4 transition-colors ${
-                    status === "present" ? "bg-emerald-50/50 dark:bg-emerald-950/10" :
-                    status === "dl" ? "bg-indigo-50/50 dark:bg-indigo-950/10" :
+                    status === "PRESENT" ? "bg-emerald-50/50 dark:bg-emerald-950/10" :
+                    status === "DL" ? "bg-indigo-50/50 dark:bg-indigo-950/10" :
                     "hover:bg-slate-50 dark:hover:bg-slate-800/50"
                   }`}
                   initial={{ opacity: 0, x: -10 }}
@@ -165,44 +208,44 @@ export function FacultyAttendance() {
                   <div className="flex items-center gap-4">
                     <div
                       className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
-                        status === "present" ? "bg-gradient-to-br from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/20" :
-                        status === "dl" ? "bg-gradient-to-br from-indigo-500 to-violet-500 shadow-lg shadow-indigo-500/20" :
+                        status === "PRESENT" ? "bg-gradient-to-br from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/20" :
+                        status === "DL" ? "bg-gradient-to-br from-indigo-500 to-violet-500 shadow-lg shadow-indigo-500/20" :
                         "bg-slate-200 dark:bg-slate-700"
                       }`}
                     >
-                      {status === "present" ? <Check className="w-5 h-5 text-white" /> :
-                       status === "dl" ? <Briefcase className="w-5 h-5 text-white" /> :
+                      {status === "PRESENT" ? <Check className="w-5 h-5 text-white" /> :
+                       status === "DL" ? <Briefcase className="w-5 h-5 text-white" /> :
                        <span className="text-sm font-bold text-slate-500 dark:text-slate-400">{student.name.charAt(0)}</span>
                       }
                     </div>
                     <div>
                       <div className="font-semibold text-slate-900 dark:text-white">{student.name}</div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400">{student.id} • Div {student.division}</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400">{student.studentId} • Current: {student.attendancePercent}%</div>
                     </div>
                   </div>
                   
                   {/* 3-way toggle */}
                   <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
                     <button
-                      onClick={() => setAttendance(student.id, "present")}
+                      onClick={() => setAttendance(student.enrollmentId, "PRESENT")}
                       className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                        status === "present" ? "bg-emerald-500 text-white shadow-sm" : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
+                        status === "PRESENT" ? "bg-emerald-500 text-white shadow-sm" : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
                       }`}
                     >
                       Present
                     </button>
                     <button
-                      onClick={() => setAttendance(student.id, "dl")}
+                      onClick={() => setAttendance(student.enrollmentId, "DL")}
                       className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                        status === "dl" ? "bg-indigo-500 text-white shadow-sm" : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
+                        status === "DL" ? "bg-indigo-500 text-white shadow-sm" : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
                       }`}
                     >
                       DL
                     </button>
                     <button
-                      onClick={() => setAttendance(student.id, "absent")}
+                      onClick={() => setAttendance(student.enrollmentId, "ABSENT")}
                       className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                        status === "absent" ? "bg-rose-500 text-white shadow-sm" : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
+                        status === "ABSENT" ? "bg-rose-500 text-white shadow-sm" : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
                       }`}
                     >
                       Absent
