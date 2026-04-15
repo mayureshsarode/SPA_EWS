@@ -1,0 +1,281 @@
+// SPA-EWS Prisma Schema
+// Translates database_schema.md into working Prisma models
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enumerations ────────────────────────────────────────────
+
+enum Role {
+  STUDENT
+  FACULTY
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum AdmissionType {
+  REGULAR
+  DSE
+}
+
+enum AdminRoleLevel {
+  NONE
+  DEPARTMENT_ADMIN
+  FY_ADMIN
+  SUPER_ADMIN
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// ─── Institutional Entities ──────────────────────────────────
+
+model Department {
+  id          String  @id @default(uuid())
+  code        String  @unique // e.g., "COMP", "ENTC", "FY"
+  name        String  // e.g., "Computer Engineering"
+  isFirstYear Boolean @default(false)
+
+  users   User[]
+  courses Course[]
+}
+
+// ─── Users & Authentication ──────────────────────────────────
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         Role
+
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+
+  studentProfile StudentProfile?
+  facultyProfile FacultyProfile?
+  auditLogs      AuditLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Student Tracking & Mentorship ───────────────────────────
+
+model StudentProfile {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  prnNumber     String        @unique
+  admissionType AdmissionType
+
+  coreBranchCode  String
+  currentSemester Int
+  division        String
+  batchNumber     Int?
+
+  // AI Predictor Context
+  activeBacklogs     Int     @default(0)
+  isHosteler         Boolean @default(false)
+  commuteHours       Float?
+  financialStressFlag Boolean @default(false)
+
+  // Mentorship
+  mentorId String?
+  mentor   FacultyProfile? @relation("MentoredStudents", fields: [mentorId], references: [id])
+
+  // Related Records
+  courseEnrollments    CourseEnrollment[]
+  externalAssessments ExternalAssessment[]
+  academicHistory     AcademicHistory?
+  lmsEngagement       LMSEngagement[]
+  leaveRequests       LeaveRequest[]
+}
+
+// ─── Faculty & Academic Roles ────────────────────────────────
+
+model FacultyProfile {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  designation   String
+  adminRole     AdminRoleLevel @default(NONE)
+  isCollegeBody Boolean        @default(false)
+
+  mentoredStudents    StudentProfile[]      @relation("MentoredStudents")
+  classCoordinatorFor DivisionCoordinator[]
+  courseOfferings      CourseOffering[]
+
+  requestedLeaves LeaveRequest[] @relation("RequestedLeaves")
+  reviewedLeaves  LeaveRequest[] @relation("ReviewedLeaves")
+}
+
+model DivisionCoordinator {
+  id        String         @id @default(uuid())
+  facultyId String
+  faculty   FacultyProfile @relation(fields: [facultyId], references: [id])
+
+  departmentCode String
+  semester       Int
+  division       String
+
+  @@unique([departmentCode, semester, division])
+}
+
+// ─── Courses & Offerings ─────────────────────────────────────
+
+model Course {
+  id           String     @id @default(uuid())
+  courseCode   String     @unique
+  name         String
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+
+  credits    Int
+  isElective Boolean @default(false)
+
+  offerings CourseOffering[]
+}
+
+model CourseOffering {
+  id       String @id @default(uuid())
+  courseId  String
+  course   Course @relation(fields: [courseId], references: [id])
+
+  facultyId String
+  faculty   FacultyProfile @relation(fields: [facultyId], references: [id])
+
+  semester        Int
+  divisionTarget  String?
+  lecturesConducted Int @default(0)
+
+  enrollments CourseEnrollment[]
+}
+
+// ─── Course Enrollments & Aggregate Tally ────────────────────
+
+model CourseEnrollment {
+  id        String         @id @default(uuid())
+  studentId String
+  student   StudentProfile @relation(fields: [studentId], references: [id])
+
+  offeringId String
+  offering   CourseOffering @relation(fields: [offeringId], references: [id])
+
+  lecturesAttended  Int   @default(0)
+  dutyLeavesGranted Int   @default(0)
+  exemptedLectures  Int   @default(0)
+
+  cieMarks Float?
+
+  @@unique([studentId, offeringId])
+}
+
+// ─── Leave & DL Approval Workflow ────────────────────────────
+
+model LeaveRequest {
+  id          String         @id @default(uuid())
+  requesterId String
+  requester   FacultyProfile @relation("RequestedLeaves", fields: [requesterId], references: [id])
+
+  studentId String
+  student   StudentProfile @relation(fields: [studentId], references: [id])
+
+  leaveType        String
+  reason           String
+  proofDocumentUrl String?
+
+  status     RequestStatus @default(PENDING)
+  approverId String?
+  approver   FacultyProfile? @relation("ReviewedLeaves", fields: [approverId], references: [id])
+
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+}
+
+// ─── AI Layer: External Assessments (AMCAT, etc.) ────────────
+
+model ExternalAssessment {
+  id        String         @id @default(uuid())
+  studentId String
+  student   StudentProfile @relation(fields: [studentId], references: [id])
+
+  vendorName String
+  dateTaken  DateTime
+
+  logicalScore      Float
+  quantitativeScore Float
+  verbalScore       Float
+  domainScore       Float?
+
+  overallPercentile Float
+
+  parsedAnalysisPayload Json?
+}
+
+// ─── AI Layer: Past Academic History ─────────────────────────
+
+model AcademicHistory {
+  id        String         @id @default(uuid())
+  studentId String         @unique
+  student   StudentProfile @relation(fields: [studentId], references: [id])
+
+  tenthBoard      String?
+  tenthPercentage Float?
+  tenthYear       Int?
+
+  twelfthBoard      String?
+  twelfthPercentage Float?
+  twelfthYear       Int?
+
+  diplomaUniversity String?
+  diplomaPercentage Float?
+  diplomaYear       Int?
+}
+
+// ─── AI Layer: LMS Engagement ────────────────────────────────
+
+model LMSEngagement {
+  id        String         @id @default(uuid())
+  studentId String
+  student   StudentProfile @relation(fields: [studentId], references: [id])
+
+  weekStarting DateTime
+
+  portalLoginsCount        Int @default(0)
+  resourcesDownloaded      Int @default(0)
+  assignmentsSubmittedLate  Int @default(0)
+  assignmentsSubmittedEarly Int @default(0)
+}
+
+// ─── System Configuration ────────────────────────────────────
+
+model SystemConfig {
+  id        String   @id @default(uuid())
+  key       String   @unique // e.g., "attendance_threshold"
+  value     String           // stored as string, parsed by app
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Audit Log ───────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  action     String   // "USER_CREATED", "ATTENDANCE_MARKED", etc.
+  entityType String   // "User", "CourseEnrollment", "LeaveRequest", etc.
+  entityId   String   // ID of the affected entity
+  userId     String   // Who performed the action
+  user       User     @relation(fields: [userId], references: [id])
+  details    String?  // JSON string with extra context
+  createdAt  DateTime @default(now())
+}
