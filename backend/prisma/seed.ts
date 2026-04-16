@@ -192,9 +192,11 @@ async function main() {
     data: { code: "AIDS", name: "Artificial Intelligence and Data Science Engineering" },
   });
 
-  // 3. Create Admin
-  console.log("  👑 Creating admin user...");
+  // 3. Create Super Admin
+  console.log("  👑 Creating admin users...");
   const adminPassword = await bcrypt.hash("admin123", 10);
+  
+  // Super Admin (university level)
   await prisma.user.create({
     data: {
       email: "admin@spa-ews.edu.in",
@@ -202,6 +204,39 @@ async function main() {
       name: "System Administrator",
       role: Role.ADMIN,
       departmentId: compDept.id,
+    },
+  });
+
+  // CE Department Admin (HOD acts as dept admin)
+  await prisma.user.create({
+    data: {
+      email: "ce.admin@spa-ews.edu.in",
+      passwordHash: adminPassword,
+      name: "CE Department Admin",
+      role: Role.ADMIN,
+      departmentId: compDept.id,
+    },
+  });
+
+  // ENTC Department Admin
+  await prisma.user.create({
+    data: {
+      email: "entc.admin@spa-ews.edu.in",
+      passwordHash: adminPassword,
+      name: "ENTC Department Admin",
+      role: Role.ADMIN,
+      departmentId: entcDept.id,
+    },
+  });
+
+  // IT Department Admin
+  await prisma.user.create({
+    data: {
+      email: "it.admin@spa-ews.edu.in",
+      passwordHash: adminPassword,
+      name: "IT Department Admin",
+      role: Role.ADMIN,
+      departmentId: itDept.id,
     },
   });
 
@@ -271,8 +306,8 @@ async function main() {
     sem3CourseIds.push(course.id);
   }
 
-  const sem5CourseIds: string[] = [];
-  for (const c of SEM5_COURSES) {
+  const sem4CourseIds: string[] = [];
+  for (const c of SEM4_COURSES) {
     const course = await prisma.course.create({
       data: {
         courseCode: c.code,
@@ -281,7 +316,7 @@ async function main() {
         credits: c.credits,
       },
     });
-    sem5CourseIds.push(course.id);
+    sem4CourseIds.push(course.id);
   }
 
   // 7. Create Course Offerings (assign faculty to courses)
@@ -301,22 +336,22 @@ async function main() {
     sem3Offerings.push(offering.id);
   }
 
-  const sem5Offerings: string[] = [];
-  for (let i = 0; i < sem5CourseIds.length; i++) {
+  const sem4Offerings: string[] = [];
+  for (let i = 0; i < sem4CourseIds.length; i++) {
     const offering = await prisma.courseOffering.create({
       data: {
-        courseId: sem5CourseIds[i],
+        courseId: sem4CourseIds[i],
         facultyId: facultyProfiles[i + 5].id, // Faculty 5-9
-        semester: 5,
+        semester: 4,
         divisionTarget: "A",
         lecturesConducted: randInt(30, 45),
       },
     });
-    sem5Offerings.push(offering.id);
+    sem4Offerings.push(offering.id);
   }
 
   // 8. Create Students
-  console.log("  🧑‍🎓 Creating 100 students with realistic names...\n");
+  console.log("  🧑‍🎓 Creating students...\n");
   const studentPassword = await bcrypt.hash("student123", 10);
   const usedNames = new Set<string>();
   let studentIndex = 0;
@@ -454,17 +489,17 @@ async function main() {
     }
   };
 
-  // Sem 3: 60 students per division (A, B, C, D) = 240 total
-  await createStudentBatch(3, "A", 60, sem3Offerings, 1, 4);
-  await createStudentBatch(3, "B", 60, sem3Offerings, 1, 4);
-  await createStudentBatch(3, "C", 60, sem3Offerings, 1, 4);
-  await createStudentBatch(3, "D", 60, sem3Offerings, 1, 4);
+  // Sem 3: 3 per division = 12
+  await createStudentBatch(3, "A", 3, sem3Offerings, 1, 4);
+  await createStudentBatch(3, "B", 3, sem3Offerings, 1, 4);
+  await createStudentBatch(3, "C", 3, sem3Offerings, 1, 4);
+  await createStudentBatch(3, "D", 3, sem3Offerings, 1, 4);
 
-  // Sem 5: 60 students per division (A, B, C, D) = 240 total
-  await createStudentBatch(5, "A", 60, sem5Offerings, 5, 9);
-  await createStudentBatch(5, "B", 60, sem5Offerings, 5, 9);
-  await createStudentBatch(5, "C", 60, sem5Offerings, 5, 9);
-  await createStudentBatch(5, "D", 60, sem5Offerings, 5, 9);
+  // Sem 4: 3 per division = 12
+  await createStudentBatch(4, "A", 3, sem4Offerings, 5, 9);
+  await createStudentBatch(4, "B", 3, sem4Offerings, 5, 9);
+  await createStudentBatch(4, "C", 3, sem4Offerings, 5, 9);
+  await createStudentBatch(4, "D", 3, sem4Offerings, 5, 9);
 
   // 9. System Configuration Defaults
   console.log("  ⚙️  Creating system config defaults...");
