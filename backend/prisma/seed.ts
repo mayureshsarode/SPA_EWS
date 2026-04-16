@@ -116,21 +116,22 @@ function generateEmail(name: string, index: number): string {
 }
 
 // ─── Course Definitions ──────────────────────────────────────
+// SY BTech Computer Engineering - Semester 3 & 4
 
 const SEM3_COURSES = [
-  { code: "CS-301", name: "Data Structures", credits: 4 },
-  { code: "CS-302", name: "Computer Organization", credits: 3 },
-  { code: "CS-303", name: "Discrete Mathematics", credits: 3 },
-  { code: "CS-304", name: "Digital Logic Design", credits: 3 },
-  { code: "CS-305", name: "Object-Oriented Programming", credits: 4 },
+  { code: "1303101", name: "Data Structures", credits: 3 },
+  { code: "1303102", name: "Computer Organization and Architecture", credits: 3 },
+  { code: "1303103", name: "Discrete Mathematics", credits: 3 },
+  { code: "1303204", name: "Data Structures Lab", credits: 2 },
+  { code: "1303205", name: "COA Lab", credits: 1 },
 ];
 
-const SEM5_COURSES = [
-  { code: "CS-501", name: "Database Management Systems", credits: 4 },
-  { code: "CS-502", name: "Operating Systems", credits: 4 },
-  { code: "CS-503", name: "Computer Networks", credits: 3 },
-  { code: "CS-504", name: "Software Engineering", credits: 3 },
-  { code: "CS-505", name: "Theory of Computation", credits: 3 },
+const SEM4_COURSES = [
+  { code: "1403106", name: "Software Engineering", credits: 2 },
+  { code: "1403107", name: "Database Management Systems", credits: 3 },
+  { code: "1403108", name: "Operating Systems", credits: 2 },
+  { code: "1403209", name: "OS Lab", credits: 1 },
+  { code: "1403210", name: "DBMS Lab", credits: 2 },
 ];
 
 // ─── Faculty Definitions ─────────────────────────────────────
