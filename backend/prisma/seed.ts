@@ -453,10 +453,17 @@ async function main() {
     }
   };
 
-  // Sem 3 Div A: 50 students, mentored by faculty 1-4
-  await createStudentBatch(3, "A", 50, sem3Offerings, 1, 4);
-  // Sem 5 Div A: 50 students, mentored by faculty 5-9
-  await createStudentBatch(5, "A", 50, sem5Offerings, 5, 9);
+  // Sem 3: 60 students per division (A, B, C, D) = 240 total
+  await createStudentBatch(3, "A", 60, sem3Offerings, 1, 4);
+  await createStudentBatch(3, "B", 60, sem3Offerings, 1, 4);
+  await createStudentBatch(3, "C", 60, sem3Offerings, 1, 4);
+  await createStudentBatch(3, "D", 60, sem3Offerings, 1, 4);
+
+  // Sem 5: 60 students per division (A, B, C, D) = 240 total
+  await createStudentBatch(5, "A", 60, sem5Offerings, 5, 9);
+  await createStudentBatch(5, "B", 60, sem5Offerings, 5, 9);
+  await createStudentBatch(5, "C", 60, sem5Offerings, 5, 9);
+  await createStudentBatch(5, "D", 60, sem5Offerings, 5, 9);
 
   // 9. System Configuration Defaults
   console.log("  ⚙️  Creating system config defaults...");
