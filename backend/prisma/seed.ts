@@ -284,9 +284,12 @@ const SY_SEM4_COURSES = [
 //   CE: 240 (60 * 4 divisions A-D)
 //   Total SY: 240
 // ============================================
-const FY_PER_DIV = 60;       // Students per division
-const SY_PER_DIV = 60;      // Students per division (CE only)
-const DIVISIONS = 4;        // Divisions per dept
+// CHANGE THESE VALUES FOR FULL DATA:
+// FY_PER_DIV=60, DIVISIONS=4 -> 960 FY
+// SY_PER_DIV=60, DIVISIONS=4 -> 240 SY
+const FY_PER_DIV = 10;      // TEST: 10, FULL: 60
+const SY_PER_DIV = 10;      // TEST: 10, FULL: 60
+const DIVISIONS = 2;       // TEST: 2, FULL: 4
 
 // BASE PASSWORD - All users can reset later
 const BASE_PASSWORD = "spaews123";
@@ -453,8 +456,39 @@ async function main() {
 
   // 6. Create Courses
   console.log("  📚 Creating courses...");
+  
+  // Create FY courses (common for all depts)
+  const fyCourseIds: string[] = [];
+  for (const c of FY_SEM1_COURSES) {
+    const course = await prisma.course.create({
+      data: {
+        courseCode: c.code,
+        name: c.name,
+        departmentId: compDept.id, // FY courses linked to CE dept temporarily
+        credits: c.credits,
+      },
+    });
+    fyCourseIds.push(course.id);
+  }
+  
+  // FY course offerings - created once, used for all FY students
+  const fyOfferings: string[] = [];
+  for (let i = 0; i < fyCourseIds.length; i++) {
+    const offering = await prisma.courseOffering.create({
+      data: {
+        courseId: fyCourseIds[i],
+        facultyId: facultyProfiles[i % facultyProfiles.length].id,
+        semester: 1,
+        divisionTarget: "A",
+        lecturesConducted: randInt(30, 45),
+      },
+    });
+    fyOfferings.push(offering.id);
+  }
+
+  // Create SY courses
   const sem3CourseIds: string[] = [];
-  for (const c of SEM3_COURSES) {
+  for (const c of SY_SEM3_COURSES) {
     const course = await prisma.course.create({
       data: {
         courseCode: c.code,
@@ -467,7 +501,7 @@ async function main() {
   }
 
   const sem4CourseIds: string[] = [];
-  for (const c of SEM4_COURSES) {
+  for (const c of SY_SEM4_COURSES) {
     const course = await prisma.course.create({
       data: {
         courseCode: c.code,
