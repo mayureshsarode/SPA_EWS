@@ -518,6 +518,7 @@ async function main() {
 
   const createStudentBatch = async (
     semester: number,
+    deptCode: string,
     division: string,
     count: number,
     offerings: string[],
@@ -525,7 +526,7 @@ async function main() {
     mentorPoolEnd: number,
     academicYear: string = "2025-26"    
   ) => {
-  console.log(`  Creating ${count} students for Sem ${semester} Div ${division} (${academicYear})...`);
+  console.log(`  Creating ${count} students for Sem ${semester} ${deptCode} Div ${division} (${academicYear})...`);
   for (let i = 0; i < count; i++) {
       studentIndex++;
       let nameResult = generateStudentName();
@@ -536,7 +537,9 @@ async function main() {
       usedNames.add(nameResult.name);
 
       const email = generateEmail(nameResult.name, studentIndex);
-      const prn = `PRN${String(studentIndex).padStart(4, "0")}`;
+      // PRN Format: YYDEPTXXX (e.g., 25CE001 for 2025 CE dept roll 001)
+      const yearShort = ACADEMIC_YEAR.substring(2, 4); // "25" from "2025-26"
+      const prn = `${yearShort}${deptCode}${String(studentIndex).padStart(4, "0")}`;
       const isDSE = semester >= 3 && Math.random() < 0.2;
 
       // Pick a random mentor from the pool
@@ -654,13 +657,18 @@ async function main() {
   // Create FY students (Sem 1) - First Year
   const divisions = ["A", "B", "C", "D"].slice(0, DIVISIONS);
   const fyOfferingsList = fyOfferings.length > 0 ? fyOfferings : [];
+  
+  // Create FY students (Sem 1) - all departments
+  const deptCodes = ["CE", "ENTC", "IT", "AIDS"]; // FY all depts
   for (const div of divisions) {
-    await createStudentBatch(1, div, FY_PER_DIV, fyOfferingsList, 1, FACULTY_DEFS.length - 1, ACADEMIC_YEAR);
+    for (const deptCode of deptCodes) {
+      await createStudentBatch(1, deptCode, div, FY_PER_DIV, fyOfferingsList, 1, FACULTY_DEFS.length - 1, ACADEMIC_YEAR);
+    }
   }
 
-  // Create SY students (Sem 3) - Second Year
+  // Create SY students (Sem 3) - CE only
   for (const div of divisions) {
-    await createStudentBatch(3, div, SY_PER_DIV, sem3Offerings, 1, FACULTY_DEFS.length - 1, ACADEMIC_YEAR);
+    await createStudentBatch(3, "CE", div, SY_PER_DIV, sem3Offerings, 1, FACULTY_DEFS.length - 1, ACADEMIC_YEAR);
   }
 
   // 9. Print Credentials Summary
