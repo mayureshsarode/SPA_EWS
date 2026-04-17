@@ -134,8 +134,14 @@ const SEM4_COURSES = [
   { code: "1403210", name: "DBMS Lab", credits: 2 },
 ];
 
-// ─── Faculty Definitions ─────────────────────────────────────
+// ─── CONFIGURATION ─────────────────────────────────────
+// Change these values to adjust data:
+// 5 * 4 * 2 (sem 3 & 4) = 40 students total per run
+const STUDENTS_PER_DIVISION = 5; 
+const NUM_DIVISIONS = 4; // A, B, C, D
 
+// ─── Faculty Definitions ─────────────────────────────────────
+// HOD should be first entry (index 0)
 const FACULTY_DEFS = [
   { name: "Dr. Meera Kulkarni", designation: "Professor & HOD", adminRole: AdminRoleLevel.DEPARTMENT_ADMIN, email: "meera.kulkarni@spa-ews.edu.in" },
   { name: "Prof. Sanjay Deshmukh", designation: "Associate Professor", adminRole: AdminRoleLevel.NONE, email: "sanjay.deshmukh@spa-ews.edu.in" },
@@ -364,7 +370,8 @@ async function main() {
     mentorPoolStart: number,
     mentorPoolEnd: number    
   ) => {
-    for (let i = 0; i < count; i++) {
+  console.log(`  Creating ${count} students for sem ${semester} div ${division}...`);
+  for (let i = 0; i < count; i++) {
       studentIndex++;
       let nameResult = generateStudentName();
       // Ensure unique names  
@@ -489,17 +496,17 @@ async function main() {
     }
   };
 
-  // Sem 3: 3 per division = 12
-  await createStudentBatch(3, "A", 3, sem3Offerings, 1, 4);
-  await createStudentBatch(3, "B", 3, sem3Offerings, 1, 4);
-  await createStudentBatch(3, "C", 3, sem3Offerings, 1, 4);
-  await createStudentBatch(3, "D", 3, sem3Offerings, 1, 4);
+  // Sem 3: STUDENTS_PER_DIVISION per division
+  const divisions3 = ["A", "B", "C", "D"].slice(0, NUM_DIVISIONS);
+  for (const div of divisions3) {
+    await createStudentBatch(3, div, STUDENTS_PER_DIVISION, sem3Offerings, 1, FACULTY_DEFS.length - 1);
+  }
 
-  // Sem 4: 3 per division = 12
-  await createStudentBatch(4, "A", 3, sem4Offerings, 5, 9);
-  await createStudentBatch(4, "B", 3, sem4Offerings, 5, 9);
-  await createStudentBatch(4, "C", 3, sem4Offerings, 5, 9);
-  await createStudentBatch(4, "D", 3, sem4Offerings, 5, 9);
+  // Sem 4: STUDENTS_PER_DIVISION per division
+  const divisions4 = ["A", "B", "C", "D"].slice(0, NUM_DIVISIONS);
+  for (const div of divisions4) {
+    await createStudentBatch(4, div, STUDENTS_PER_DIVISION, sem4Offerings, 1, FACULTY_DEFS.length - 1);
+  }
 
   // 9. System Configuration Defaults
   console.log("  ⚙️  Creating system config defaults...");
