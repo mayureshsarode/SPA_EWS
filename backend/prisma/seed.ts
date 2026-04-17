@@ -658,17 +658,25 @@ async function main() {
   const divisions = ["A", "B", "C", "D"].slice(0, DIVISIONS);
   const fyOfferingsList = fyOfferings.length > 0 ? fyOfferings : [];
   
+  // FY students: admitted CURRENT year (2025-26), currently in Sem 1
+  // FY: AY 2025-26, Year in PRN = "25"
+  const fyAcademicYear = "2025-26";
+  
+  // SY students: admitted LAST year (2024-25), currently in Sem 3  
+  // SY: AY 2024-25, Year in PRN = "24"
+  const syAcademicYear = "2024-25";
+  
   // Create FY students (Sem 1) - all departments
   const deptCodes = ["CE", "ENTC", "IT", "AIDS"]; // FY all depts
   for (const div of divisions) {
     for (const deptCode of deptCodes) {
-      await createStudentBatch(1, deptCode, div, FY_PER_DIV, fyOfferingsList, 1, FACULTY_DEFS.length - 1, ACADEMIC_YEAR);
+      await createStudentBatch(1, deptCode, div, FY_PER_DIV, fyOfferingsList, 1, FACULTY_DEFS.length - 1, fyAcademicYear);
     }
   }
 
-  // Create SY students (Sem 3) - CE only
+  // Create SY students (Sem 3) - CE only (admitted 2024)
   for (const div of divisions) {
-    await createStudentBatch(3, "CE", div, SY_PER_DIV, sem3Offerings, 1, FACULTY_DEFS.length - 1, ACADEMIC_YEAR);
+    await createStudentBatch(3, "CE", div, SY_PER_DIV, sem3Offerings, 1, FACULTY_DEFS.length - 1, syAcademicYear);
   }
 
   // 9. Print Credentials Summary
