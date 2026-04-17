@@ -79,7 +79,8 @@ model StudentProfile {
   admissionType AdmissionType
 
   coreBranchCode  String
-  currentSemester Int
+  currentSemester Int         // 1-8 (Sem 1 to Sem 8)
+  academicYear  String      // "2025-26" format
   division        String
   batchNumber     Int?
 

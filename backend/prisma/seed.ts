@@ -116,9 +116,25 @@ function generateEmail(name: string, index: number): string {
 }
 
 // ─── Course Definitions ──────────────────────────────────────
-// SY BTech Computer Engineering - Semester 3 & 4
+// FY BTech - Semester 1 (First Year) - Common for all depts
+// Using simplified courses for GROUP-1
+const FY_COURSES = [
+  { code: "F-001", name: "Linear Algebra and Calculus", credits: 4 },
+  { code: "F-003", name: "Quantum Physics", credits: 2 },
+  { code: "F-004", name: "Quantum Physics Lab", credits: 1 },
+  { code: "F-007", name: "Mechanics for Robotics", credits: 2 },
+  { code: "F-008", name: "Mechanics for Robotics Lab", credits: 1 },
+  { code: "F-009", name: "Integrated Electrical and Electronics Engineering", credits: 2 },
+  { code: "F-010", name: "Integrated EE Lab", credits: 1 },
+  { code: "F-013", name: "C Programming for Problem Solving", credits: 2 },
+  { code: "F-014", name: "C Programming Lab", credits: 1 },
+  { code: "F-017", name: "FAB Lab", credits: 1 },
+  { code: "F-020", name: "Indian Knowledge System", credits: 2 },
+  { code: "F-023", name: "Cocurricular Activity-1", credits: 1 },
+];
 
-const SEM3_COURSES = [
+// SY BTech - Semester 3 (Second Year) - CE only for now
+const SY_COURSES = [
   { code: "1303101", name: "Data Structures", credits: 3 },
   { code: "1303102", name: "Computer Organization and Architecture", credits: 3 },
   { code: "1303103", name: "Discrete Mathematics", credits: 3 },
@@ -126,19 +142,34 @@ const SEM3_COURSES = [
   { code: "1303205", name: "COA Lab", credits: 1 },
 ];
 
-const SEM4_COURSES = [
-  { code: "1403106", name: "Software Engineering", credits: 2 },
-  { code: "1403107", name: "Database Management Systems", credits: 3 },
-  { code: "1403108", name: "Operating Systems", credits: 2 },
-  { code: "1403209", name: "OS Lab", credits: 1 },
-  { code: "1403210", name: "DBMS Lab", credits: 2 },
-];
-
 // ─── CONFIGURATION ─────────────────────────────────────
-// Change these values to adjust data:
-// 5 * 4 * 2 (sem 3 & 4) = 40 students total per run
-const STUDENTS_PER_DIVISION = 5; 
-const NUM_DIVISIONS = 4; // A, B, C, D
+// SET VALUES TO CHANGE STUDENT COUNTS:
+// FY: FY_PER_DIV * DIVISIONS * NUM_FY_DEPARTMENTS
+// SY: SY_PER_DIV * DIVISIONS (CE only)
+// 
+// ═══════════════════════════════════════════════════════════════════
+// STUDENT COUNT CONFIGURATION:
+// ============================================
+// FY (Sem 1): First Year - ALL departments
+//   CE: 240 (60 * 4 divisions A-D)
+//   ENTC: 240 (60 * 4 divisions A-D)
+//   IT: 180 (60 * 3 divisions A-C)
+//   AIDS: 60 (60 * 1 division A)
+//   Total FY: 720
+//
+// SY (Sem 3): Second Year - CE department only
+//   CE: 240 (60 * 4 divisions A-D)
+//   Total SY: 240
+// ============================================
+const FY_PER_DIV = 60;       // Students per division
+const SY_PER_DIV = 60;      // Students per division (CE only)
+const DIVISIONS = 4;        // Divisions per dept
+
+// BASE PASSWORD - All users can reset later
+const BASE_PASSWORD = "spaews123";
+
+// Academic Year
+const ACADEMIC_YEAR = "2025-26";
 
 // ─── Faculty Definitions ─────────────────────────────────────
 // HOD should be first entry (index 0)
@@ -368,9 +399,10 @@ async function main() {
     count: number,
     offerings: string[],
     mentorPoolStart: number,
-    mentorPoolEnd: number    
+    mentorPoolEnd: number,
+    academicYear: string = "2025-26"    
   ) => {
-  console.log(`  Creating ${count} students for sem ${semester} div ${division}...`);
+  console.log(`  Creating ${count} students for Sem ${semester} Div ${division} (${academicYear})...`);
   for (let i = 0; i < count; i++) {
       studentIndex++;
       let nameResult = generateStudentName();
@@ -494,21 +526,42 @@ async function main() {
         });
       }
     }
-  };
-
-  // Sem 3: STUDENTS_PER_DIVISION per division
-  const divisions3 = ["A", "B", "C", "D"].slice(0, NUM_DIVISIONS);
-  for (const div of divisions3) {
-    await createStudentBatch(3, div, STUDENTS_PER_DIVISION, sem3Offerings, 1, FACULTY_DEFS.length - 1);
+};
+  
+  // Create FY students (Sem 1) - First Year
+  const divisions = ["A", "B", "C", "D"].slice(0, DIVISIONS);
+  const fyOfferingsList = fyOfferings.length > 0 ? fyOfferings : [];
+  for (const div of divisions) {
+    await createStudentBatch(1, div, FY_PER_DIV, fyOfferingsList, 1, FACULTY_DEFS.length - 1, ACADEMIC_YEAR);
   }
 
-  // Sem 4: STUDENTS_PER_DIVISION per division
-  const divisions4 = ["A", "B", "C", "D"].slice(0, NUM_DIVISIONS);
-  for (const div of divisions4) {
-    await createStudentBatch(4, div, STUDENTS_PER_DIVISION, sem4Offerings, 1, FACULTY_DEFS.length - 1);
+  // Create SY students (Sem 3) - Second Year
+  for (const div of divisions) {
+    await createStudentBatch(3, div, SY_PER_DIV, sem3Offerings, 1, FACULTY_DEFS.length - 1, ACADEMIC_YEAR);
   }
 
-  // 9. System Configuration Defaults
+  // 9. Print Credentials Summary
+  console.log("\n  ┌─────────────────────────────────────────────────────────────────────────────┐");
+  console.log("  │                    LOGIN CREDENTIALS                                     │");
+  console.log("  ├─────────────────────────────────────────────────────────────────────────────┤");
+  console.log("  │ SUPER ADMIN:                                                              │");
+  console.log("  │   Email: admin@spa-ews.edu.in                                           │");
+  console.log("  │   Password: admin123                                                    │");
+  console.log("  ├─────────────────────────────────────────────────────────────────────────────┤");
+  console.log("  │ DEPARTMENT ADMINS:                                                    │");
+  console.log("  │   CE Admin:   ce.admin@spa-ews.edu.in    / admin123                     │");
+  console.log("  │   ENTC Admin: entc.admin@spa-ews.edu.in  / admin123                     │");
+  console.log("  │   IT Admin:   it.admin@spa-ews.edu.in    / admin123                     │");
+  console.log("  ├─────────────────────────────────────────────────────────────────────────────┤");
+  console.log("  │ FACULTY (sample):                                                       │");
+  console.log("  │   meera.kulkarni@spa-ews.edu.in / faculty123                            │");
+  console.log("  │   sanjay.deshmukh@spa-ews.edu.in / faculty123                           │");
+  console.log("  ├─────────────────────────────────────────────────────────────────────────────┤");
+  console.log("  │ STUDENTS (base password for all students): student123                      │");
+  console.log("  │ Sample emails: student1@spa-ews.edu.in to student40@spa-ews.edu.in   │");
+  console.log("  └─────────────────────────────────────────────────────────────────────────────┘\n");
+
+  // 10. System Configuration Defaults
   console.log("  ⚙️  Creating system config defaults...");
   const configDefaults = [
     { key: "attendance_threshold", value: "75" },

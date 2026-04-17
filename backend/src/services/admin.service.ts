@@ -103,7 +103,7 @@ export async function getUsers(search?: string, role?: string, requestingUserId?
     });
     
     // If not SUPER_ADMIN, filter by department
-    if (requestingUser?.role !== "SUPER_ADMIN" && requestingUser?.facultyProfile?.adminRole !== "SUPER_ADMIN") {
+    if (requestingUser && requestingUser.role !== "SUPER_ADMIN" && requestingUser.facultyProfile?.adminRole !== "SUPER_ADMIN") {
       where.departmentId = requestingUser.departmentId;
     }
   }
@@ -147,7 +147,7 @@ export async function getCourses(requestingUserId?: string) {
     });
     
     // If not SUPER_ADMIN, filter by department
-    if (requestingUser?.role !== "SUPER_ADMIN" && requestingUser?.facultyProfile?.adminRole !== "SUPER_ADMIN") {
+    if (requestingUser && requestingUser.role !== "SUPER_ADMIN" && requestingUser.facultyProfile?.adminRole !== "SUPER_ADMIN") {
       where.departmentId = requestingUser.departmentId;
     }
   }
