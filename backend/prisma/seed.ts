@@ -8,24 +8,86 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-// ─── Naming Arrays (50%+ Maharashtrian) ──────────────────────
+// ─── Naming Arrays - EXTENSIVE for 1000+ students ──────────────────────
 
 const maharashtrianFirstNames = {
   male: [
+    // Group 1 - Common
     "Aarav", "Aditya", "Aniket", "Arjun", "Atharva", "Chinmay", "Devendra",
     "Ganesh", "Harsh", "Jayesh", "Kartik", "Mandar", "Mihir", "Nikhil",
     "Omkar", "Pranav", "Prathamesh", "Rahul", "Rushikesh", "Sachin",
     "Sagar", "Sahil", "Sanket", "Saurabh", "Shubham", "Siddharth",
     "Soham", "Tanmay", "Tejas", "Vaibhav", "Vedant", "Vikas",
     "Vinayak", "Vishal", "Yash", "Akshay", "Amey", "Bhavesh",
+    // Group 2 - More
+    "Kiran", "Madhav", "Nilesh", "Onkar", "Pankaj", "Quadir",
+    "Raj", "Rohan", "Sameer", "Tushar", "Umesh", "Vicky",
+    "Yogesh", "Zeeshan", "Ashutosh", "Balu", "Chetan", "Darshan",
+    // Group 3
+    "Eknath", "Freed", "Gopal", "Harish", "Ishwar", "Jeet",
+    "Kalyan", "Lakshman", "Mohan", "Ojas", "Parth", "Quantum",
+    "Raghav", "Tara", "Uddhav", "Vasudev", "Warrior", "Xavier",
+    // Group 4
+    "Yashwant", "Zuber", "Amit", "Bharat", "Dhanraj", "Girish",
+    "Hemant", "Jatin", "Ketan", "Lomesh", "Manoj", "Pravin",
+    "Tausif", "Vicky", "Anmol", "Basav", "Chaitanya", "Dnyanesh",
+    // Group 5
+    "Ekaling", "Gajanan", "Hanuman", "Indraj", "Jagdish", "Krishna",
+    "Laxman", "Madhusudan", "Narayan", "Pundlik", "Raghunath", "Shridhar",
+    "Tryambak", "Umakant", "Vishwanath", "Yagnesh", "Zindaprasad",
+    // Group 6
+    "Abhishek", "Bhushan", "Chandrakant", "Dinesh", "Eshwar", "Frank",
+    "Girish", "Hrishikesh", "Ishant", "Jignesh", "Kaustubh", "Lakshay",
+    // Group 7  
+    "Mangesh", "Nikhilesh", "Oankar", "Prasad", "Quintan", "Rajesh",
+    "Shashank", "Tushar", "Upendra", "Vijay", "Yash", "Zaheer",
+    // Group 8
+    "Akshay", "Amar", "Balaji", "Chetan", "Darshan", "Eknath",
+    "Firoj", "Gopal", "Hiren", "Irfan", "Jeevan", "Kishor",
+    // Group 9
+    "Lakshman", "Manoj", "Niraj", "Onkar", "Pravin", "Rahul",
+    "Santosh", "Tukaram", "Uddhav", "Viraj", "Walmik", "Yashpal",
+    // Group 10
+    "Abhay", "Bipin", "Chetan", "Dipak", "Eknath", "Farhan",
+    "Gulab", "Himmat", "Imran", "Juber", "Kaif", "Latif",
+    // Additional
+    "Mohan", "Nawab", "Osman", "Pramod", "Qayyum", "Rauf",
+    "Sakib", "Tariq", "Usman", "Vaijanath", "Wafaa", "Yunus",
   ],
   female: [
+    // Group 1 - Common
     "Aishwarya", "Ananya", "Ankita", "Apoorva", "Dhanashree", "Gauri",
     "Isha", "Janhavi", "Kajal", "Komal", "Madhura", "Manasi",
     "Mrunmayee", "Neha", "Pallavi", "Pooja", "Prajakta", "Priya",
     "Radhika", "Rina", "Riya", "Rutuja", "Sakshi", "Sayali",
     "Shruti", "Sneha", "Sonal", "Swati", "Tanvi", "Tejal",
-    "Vaishnavi", "Vrushali", "Yukta",
+    // Group 2
+    "Vaishnavi", "Vrushali", "Yukta", "Aarya", "Bhavana", "Chhaya",
+    "Divya", "Eva", "Farmiza", "Gita", "Harsha", "Ira",
+    // Group 3
+    "Jaya", "Kavita", "Lata", "Mala", "Nanda", "Ovi",
+    "Pari", "Quara", "Rani", "Sita", "Tara", "Uma",
+    // Group 4
+    "Vidya", "Wasana", "Xena", "Yashodhara", "Zara", "Ashwini",
+    "Bhakti", "Chetna", "Deepti", "Esha", "Fiona", "Gayatri",
+    // Group 5
+    "Hansika", "Ishita", "Jiya", "Kanika", "Likitha", "Mithila",
+    "Nikita", "Olive", "Poonam", "Queen", "Riyaa", "Sana",
+    // Group 6
+    "Tisha", "Umaa", "Veda", "Winnie", "Xiyam", "Yashika",
+    "Zeenat", "Aafreen", "Bisma", "Chandni", "Dua", "Farzana",
+    // Group 7
+    "Gulab", "Hiral", "Insha", "Jahanvi", "Kashvi", "Lisha",
+    // Group 8
+    "Maitri", "Niyati", "Ojasvi", "Prachi", "Qirat", "Riddhi",
+    // Group 9
+    "Srishti", "Tiya", "Uma", "Vani", "Wrichi", "Xiya",
+    // Group 10
+    "Yashvi", "Zara", "Aditi", "Bhavika", "Chhavi", "Dipti",
+    // Additional
+    "Elima", "Farial", "Gowri", "Harsimran", "Ishita", "Jasleen",
+    "Kiran", "Laveena", "Mona", "Navkiran", "Omi", "Pihu",
+    "Riya", "Siya", "Tiasha", "Uttara", "Vidyut", "Weda",
   ],
 };
 
@@ -34,10 +96,24 @@ const otherFirstNames = {
     "Abhinav", "Akash", "Aryan", "Deepak", "Gaurav", "Himanshu",
     "Kunal", "Lokesh", "Mohit", "Neeraj", "Piyush", "Rajat",
     "Rohit", "Sumit", "Vivek", "Ankit", "Dhruv", "Ishaan",
+    "Arnav", "Kabir", "Reyansh", "Shiva", "Vihaan", "Ayaan",
+    "Shaurya", "Krishna", "Madhav", "Arihant", "Sai", "Karan",
+    "Dev", "Armaan", "Aditya", "Vivaan", "Sahil", "Saarthak",
+    "Arjun", "Vihaan", "Reyansh", "Ayaan", "Shaurya", "Krishna",
+    "Ishaan", "Arnav", "Aaryan", "Atharva", "Vivaan", "Rohan",
+    "Aditya", "Vihaan", "Aryan", "Arnav", "Kabir", "Shaurya",
+    "Ayaan", "Krishna", "Atharva", "Reyansh", "Arjun", "Dev",
+    "Kartik", "Yash", "Raghav", "Shaan", "Veer", "Zayn",
   ],
   female: [
     "Aditi", "Bhavna", "Deepika", "Kavya", "Meera", "Nandini",
     "Payal", "Rashmi", "Simran", "Tanya", "Urvi", "Zara",
+    "Ananya", "Sanya", "Avni", "Kiara", "Myra", "Zoya",
+    "Aria", "Diya", "Ira", "Liya", "Navya", "Riya",
+    "Saniya", "Tanishka", "Vani", "Yuvika", "Aisha", "Brianna",
+    "Avni", "Diya", "Ira", "Kiara", "Navya", "Aadhya",
+    "Ananya", "Saanvi", "Myra", "Diya", "Kiara", "Navya",
+    "Priya", "Siya", "Tiya", "Riya", "Ananya", "Aadhya",
   ],
 };
 
@@ -45,6 +121,13 @@ const maharashtrianMiddleNames = [
   "Suresh", "Rajesh", "Ramesh", "Anil", "Pramod", "Sanjay",
   "Dilip", "Milind", "Sandip", "Vijay", "Manoj", "Ravi",
   "Ashok", "Dinesh", "Sunil", "Mohan", "Deepak", "Satish",
+  "Mahesh", "Shankar", "Vasant", "Tryambak", "Uddhav", "Namdeo",
+  "Pandurang", "Rajabhau", "Sridhar", "Tukaram", "Yashwant", "Narayan",
+  "Pundlik", "Raghunath", "Shridhar", "Tryambak", "Vishwanath", "Mahadev",
+  // Additional
+  "Bhikaji", "Daher", "EKNATH", " Gulab", "Haribhau", "Jaywant",
+  "Keshav", "Laxman", "Moreshwar", "Nanaso", "Padmanab", "Ramkrishna",
+  "Sambhaji", "Tatyaba", "Udbats", "Vikas", "Waman", "Yashrao",
 ];
 
 const maharashtrianSurnames = [
@@ -53,12 +136,33 @@ const maharashtrianSurnames = [
   "Kale", "Kamble", "Salunkhe", "Sonawane", "Wagh", "Mane",
   "Gokhale", "Phadke", "Kelkar", "Tambe", "Naik", "Bhat",
   "Thakur", "Rane", "Ghate", "Sawant", "Dange", "Khare",
+  "Borase", "Chitte", "Dahake", "Gade", "Hatwalne", "Jadhao",
+  "Khandare", "Lambe", "Mote", "Nangre", "Pagare", "Rajput",
+  "Sarje", "Tayade", "Ugalmane", "Vakade", "Wakade", "Yelne",
+  // More
+  "Ade", "Bandal", "Chougule", "Dapke", "Garje", "Holkar",
+  "Jadhav", "Kadam", "Lokhande", "Munde", "Nalawade", "Pandit",
+  "Rasal", "Sangawar", "Tikekar", "Usalpuri", "Vasane", "Waje",
+  "Yerne", "Zende", "Andure", "Bhor", "Chandane", "Dhonde",
+  // Additional
+  "Gade", "Hake", "Jamdade", "Kote", "Mali", "Nawghare",
+  "Ore", "Pokale", "Rasam", "Salunke", "Totre", "Umarkar",
 ];
 
 const otherSurnames = [
   "Sharma", "Gupta", "Singh", "Kumar", "Verma", "Agarwal",
   "Mishra", "Pandey", "Jain", "Mehta", "Reddy", "Patel",
   "Rao", "Nair", "Iyer", "Menon", "Bose", "Das",
+  "Chowdhury", "Banerjee", "Kapoor", "Khanna", "Malhotra", "Sinha",
+  "Trivedi", "Desai", "Shah", "Bhatt", "Joshi", "Shukla",
+  // More
+  "Chandra", "Dutt", "Iyengar", "Joshi", "Kulkarni", "Lakshmi",
+  "Mahajan", "Natarajan", "OP", "Pillai", "Raghavan", "Sundaram",
+  "Venkatesh", "Wadhwa", "Xavier", "Yadav", "Zaheer", "Abraham",
+  // Additional
+  "Bajaj", "Chakraborty", "Dubey", "Gandhi", "Hegde", "Ishida",
+  "Jha", "Karnik", "Luthra", "Murti", "Oberoi", "Parikh",
+  "Quer", "Raman", "Saraf", "Talwar", "Vora", "Wadiyar",
 ];
 
 // ─── Utility Functions ───────────────────────────────────────
@@ -116,30 +220,49 @@ function generateEmail(name: string, index: number): string {
 }
 
 // ─── Course Definitions ──────────────────────────────────────
-// FY BTech - Semester 1 (First Year) - Common for all depts
-// Using simplified courses for GROUP-1
-const FY_COURSES = [
+// FY BTech - Semester 1 (completed/historical) & Semester 2 (ongoing)
+// Common for all depts - FY courses
+const FY_SEM1_COURSES = [
   { code: "F-001", name: "Linear Algebra and Calculus", credits: 4 },
   { code: "F-003", name: "Quantum Physics", credits: 2 },
   { code: "F-004", name: "Quantum Physics Lab", credits: 1 },
   { code: "F-007", name: "Mechanics for Robotics", credits: 2 },
-  { code: "F-008", name: "Mechanics for Robotics Lab", credits: 1 },
-  { code: "F-009", name: "Integrated Electrical and Electronics Engineering", credits: 2 },
+  { code: "F-008", name: "Mechanics Lab", credits: 1 },
+  { code: "F-009", name: "Integrated EE Engineering", credits: 2 },
   { code: "F-010", name: "Integrated EE Lab", credits: 1 },
-  { code: "F-013", name: "C Programming for Problem Solving", credits: 2 },
+  { code: "F-013", name: "C Programming", credits: 2 },
   { code: "F-014", name: "C Programming Lab", credits: 1 },
   { code: "F-017", name: "FAB Lab", credits: 1 },
-  { code: "F-020", name: "Indian Knowledge System", credits: 2 },
-  { code: "F-023", name: "Cocurricular Activity-1", credits: 1 },
 ];
 
-// SY BTech - Semester 3 (Second Year) - CE only for now
-const SY_COURSES = [
+const FY_SEM2_COURSES = [
+  { code: "F-002", name: "Statistics and Calculus", credits: 4 },
+  { code: "F-005", name: "Chemical Science", credits: 2 },
+  { code: "F-006", name: "Chemical Lab", credits: 1 },
+  { code: "F-011", name: "Computer Graphics", credits: 2 },
+  { code: "F-012", name: "CG Lab", credits: 1 },
+  { code: "F-015", name: "OOP with C++", credits: 2 },
+  { code: "F-016", name: "OOP Lab", credits: 1 },
+  { code: "F-018", name: "Design Thinking Lab", credits: 1 },
+  { code: "F-019", name: "Sustainable Engineering", credits: 2 },
+  { code: "F-021", name: "Soft Skills", credits: 2 },
+];
+
+// SY - Semester 3 (completed/historical) & Semester 4 (ongoing)
+const SY_SEM3_COURSES = [
   { code: "1303101", name: "Data Structures", credits: 3 },
-  { code: "1303102", name: "Computer Organization and Architecture", credits: 3 },
+  { code: "1303102", name: "Computer Organization", credits: 3 },
   { code: "1303103", name: "Discrete Mathematics", credits: 3 },
   { code: "1303204", name: "Data Structures Lab", credits: 2 },
   { code: "1303205", name: "COA Lab", credits: 1 },
+];
+
+const SY_SEM4_COURSES = [
+  { code: "1403106", name: "Software Engineering", credits: 2 },
+  { code: "1403107", name: "Database Management Systems", credits: 3 },
+  { code: "1403108", name: "Operating Systems", credits: 2 },
+  { code: "1403209", name: "OS Lab", credits: 1 },
+  { code: "1403210", name: "DBMS Lab", credits: 2 },
 ];
 
 // ─── CONFIGURATION ─────────────────────────────────────
