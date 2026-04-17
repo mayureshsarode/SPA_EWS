@@ -289,7 +289,21 @@ const SY_SEM4_COURSES = [
 // SY_PER_DIV=60, DIVISIONS=4 -> 240 SY
 const FY_PER_DIV = 10;      // TEST: 10, FULL: 60
 const SY_PER_DIV = 10;      // TEST: 10, FULL: 60
-const DIVISIONS = 2;       // TEST: 2, FULL: 4
+const FY_PER_DIV = 60;
+const SY_PER_DIV = 60;
+
+// Department-wise divisions (full data)
+const DEPT_DIVISIONS = {
+  CE: 4,       // A,B,C,D
+  ENTC: 4,     // A,B,C,D
+  IT: 3,       // A,B,C
+  AIDS: 1       // A only
+};
+
+// Test values (uncomment below for testing)
+// const FY_PER_DIV = 10;
+// const SY_PER_DIV = 10;
+// const DEPT_DIVISIONS = { CE: 2, ENTC: 2, IT: 2, AIDS: 1 };
 
 // BASE PASSWORD - All users can reset later
 const BASE_PASSWORD = "spaews123";
@@ -689,7 +703,8 @@ async function main() {
 };
   
   // Create FY students (Sem 1) - First Year
-  const divisions = ["A", "B", "C", "D"].slice(0, DIVISIONS);
+  // FY students - use dept-wise divisions
+  const divisions = ["A", "B", "C", "D"];
   const fyOfferingsList = fyOfferings.length > 0 ? fyOfferings : [];
   
   // FY students: admitted CURRENT year (2025-26), currently in Sem 1
@@ -700,17 +715,19 @@ async function main() {
   // SY: AY 2024-25, Year in PRN = "24"
   const syAcademicYear = "2024-25";
   
-  // Create FY students (Sem 1) - all departments
-  const deptCodes = ["CE", "ENTC", "IT", "AIDS"]; // FY all depts
-  for (const div of divisions) {
-    for (const deptCode of deptCodes) {
-      await createStudentBatch(1, deptCode, div, FY_PER_DIV, fyOfferingsList, 1, FACULTY_DEFS.length - 1, fyAcademicYear);
+  // Create FY students (Sem 1) - all departments with their divisions
+  const deptCodes = ["CE", "ENTC", "IT", "AIDS"];
+  
+  for (const deptCode of deptCodes) {
+    const numDivs = DEPT_DIVISIONS[deptCode as keyof typeof DEPT_DIVISIONS];
+    for (let d = 0; d < numDivs; d++) {
+      await createStudentBatch(1, deptCode, divisions[d], FY_PER_DIV, fyOfferingsList, 1, FACULTY_DEFS.length - 1, fyAcademicYear);
     }
   }
 
-  // Create SY students (Sem 3) - CE only (admitted 2024)
-  for (const div of divisions) {
-    await createStudentBatch(3, "CE", div, SY_PER_DIV, sem3Offerings, 1, FACULTY_DEFS.length - 1, syAcademicYear);
+  // Create SY students (Sem 3) - CE only (4 divisions)
+  for (let d = 0; d < DEPT_DIVISIONS.CE; d++) {
+    await createStudentBatch(3, "CE", divisions[d], SY_PER_DIV, sem3Offerings, 1, FACULTY_DEFS.length - 1, syAcademicYear);
   }
 
   // 9. Print Credentials Summary
