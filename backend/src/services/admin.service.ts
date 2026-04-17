@@ -79,8 +79,9 @@ export async function getDepartments() {
 
 /**
  * Returns all users with search and role filter.
+ * Dept admins only see their department users.
  */
-export async function getUsers(search?: string, role?: string) {
+export async function getUsers(search?: string, role?: string, requestingUserId?: string) {
   const where: any = {};
 
   if (role && role !== "all") {
@@ -92,6 +93,19 @@ export async function getUsers(search?: string, role?: string) {
       { name: { contains: search, mode: "insensitive" } },
       { email: { contains: search, mode: "insensitive" } },
     ];
+  }
+
+  // Check if requesting user is dept admin - filter by department
+  if (requestingUserId) {
+    const requestingUser = await prisma.user.findUnique({
+      where: { id: requestingUserId },
+      include: { facultyProfile: { select: { adminRole: true } } },
+    });
+    
+    // If not SUPER_ADMIN, filter by department
+    if (requestingUser?.role !== "SUPER_ADMIN" && requestingUser?.facultyProfile?.adminRole !== "SUPER_ADMIN") {
+      where.departmentId = requestingUser.departmentId;
+    }
   }
 
   const users = await prisma.user.findMany({
@@ -120,9 +134,26 @@ export async function getUsers(search?: string, role?: string) {
 
 /**
  * Returns all courses with offering details.
+ * Dept admins only see their department courses.
  */
-export async function getCourses() {
+export async function getCourses(requestingUserId?: string) {
+  const where: any = {};
+
+  // Check if requesting user is dept admin - filter by department
+  if (requestingUserId) {
+    const requestingUser = await prisma.user.findUnique({
+      where: { id: requestingUserId },
+      include: { facultyProfile: { select: { adminRole: true } } },
+    });
+    
+    // If not SUPER_ADMIN, filter by department
+    if (requestingUser?.role !== "SUPER_ADMIN" && requestingUser?.facultyProfile?.adminRole !== "SUPER_ADMIN") {
+      where.departmentId = requestingUser.departmentId;
+    }
+  }
+
   const courses = await prisma.course.findMany({
+    where,
     include: {
       department: true,
       offerings: {

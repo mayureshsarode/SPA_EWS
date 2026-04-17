@@ -7,6 +7,7 @@ export interface JwtPayload {
   userId: string;
   role: string;
   departmentId: string;
+  adminRole?: string; // DEPARTMENT_ADMIN, SUPER_ADMIN, NONE
 }
 
 // Extend Express Request to carry our user
