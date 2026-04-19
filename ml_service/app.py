@@ -1,62 +1,70 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import pandas as pd
 import joblib
 
 app = Flask(__name__)
+CORS(app)
 
-# 1. Load the trained model and the expected column names when the server starts
-print("Loading Model...")
-model = joblib.load('spa_risk_model.pkl')
-model_columns = joblib.load('model_columns.pkl')
-
-
-@app.route('/')
-def home():
-    return "SPA-EWS Risk Prediction API is running!"
+print("Loading Enterprise XGBoost Model...")
+model = joblib.load('xgboost_risk_model_v2.pkl')
+expected_features = joblib.load('xgb_features_v2.pkl')
+reverse_mapping = {0: "SAFE", 1: "WARNING", 2: "CRITICAL"}
 
 
-# 2. Create the Prediction Endpoint
-@app.route('/predict_risk', methods=['POST'])
+def generate_action_plan(student_data, risk_level):
+    actions = []
+    if risk_level == "SAFE":
+        return ["✅ Great job! Keep up your current habits."]
+
+    if student_data.get('Attendance_Pct', 100) < 75:
+        actions.append(
+            f"🚨 Attendance: Currently at {student_data['Attendance_Pct']}%. You must attend upcoming classes.")
+
+    failing_subjects = []
+    subjects = ['OS_CIE', 'DBMS_CIE', 'SE_CIE', 'MDM_CIE', 'Entrepreneurship_CIE', 'ICSR_CIE']
+    for sub in subjects:
+        if student_data.get(sub, 60) < 24:
+            failing_subjects.append(sub.replace('_CIE', ''))
+
+    if failing_subjects:
+        actions.append(f"📚 Academics: Schedule a mentor meeting immediately for: {', '.join(failing_subjects)}.")
+
+    if student_data.get('Active_Backlogs', 0) > 0:
+        actions.append(
+            f"⚠️ Backlogs: You have {student_data['Active_Backlogs']} active backlogs. Prioritize clearing these.")
+
+    return actions
+
+
+@app.route('/predict', methods=['POST'])
 def predict_risk():
     try:
-        # Get the student data sent by the Frontend/Dashboard (in JSON format)
         student_data = request.json
+        df = pd.DataFrame([student_data])
 
-        # Convert JSON into a Pandas DataFrame
-        query_df = pd.DataFrame([student_data])
+        # Match columns for XGBoost
+        for col in expected_features:
+            if col not in df.columns:
+                df[col] = 0
+        df = df[expected_features]
 
-        # Ensure the incoming data has all the columns the model expects
-        # If a column is missing, fill it with 0
-        query_df = query_df.reindex(columns=model_columns, fill_value=0)
+        # Predict
+        predicted_numeric = model.predict(df)[0]
+        risk_level = reverse_mapping[predicted_numeric]
 
-        # 3. Make the Prediction
-        prediction = model.predict(query_df)  # Returns 0 (Safe) or 1 (At-Risk)
-        probability = model.predict_proba(query_df)  # Returns the exact percentage/confidence
+        # Generate Recommendations
+        recommendations = generate_action_plan(student_data, risk_level)
 
-        # Extract the probability of being "At-Risk" (class 1)
-        risk_probability = float(probability[0][1])
-
-        # Convert prediction to an understandable label
-        if risk_probability >= 0.75:
-            risk_category = "Critical"
-        elif risk_probability >= 0.50:
-            risk_category = "High Risk"
-        elif risk_probability >= 0.25:
-            risk_category = "Medium Risk"
-        else:
-            risk_category = "Safe"
-
-        # 4. Send the result back to the Dashboard
         return jsonify({
-            'prediction': int(prediction[0]),
-            'risk_category': risk_category,
-            'risk_probability': f"{risk_probability * 100:.2f}%"
+            "status": "success",
+            "risk_level": risk_level,
+            "recommendations": recommendations
         })
 
     except Exception as e:
-        return jsonify({'error': str(e)})
+        return jsonify({"status": "error", "message": str(e)})
 
 
 if __name__ == '__main__':
-    # Run the server on port 5000
-    app.run(port=5000, debug=True)
+    app.run(debug=True, port=5000)
