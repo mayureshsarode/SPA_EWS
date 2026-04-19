@@ -257,14 +257,6 @@ const SY_SEM3_COURSES = [
   { code: "1303205", name: "COA Lab", credits: 1 },
 ];
 
-const SY_SEM4_COURSES = [
-  { code: "1403106", name: "Software Engineering", credits: 2 },
-  { code: "1403107", name: "Database Management Systems", credits: 3 },
-  { code: "1403108", name: "Operating Systems", credits: 2 },
-  { code: "1403209", name: "OS Lab", credits: 1 },
-  { code: "1403210", name: "DBMS Lab", credits: 2 },
-];
-
 // ─── CONFIGURATION ─────────────────────────────────────
 // SET VALUES TO CHANGE STUDENT COUNTS:
 // FY: FY_PER_DIV * DIVISIONS * NUM_FY_DEPARTMENTS
