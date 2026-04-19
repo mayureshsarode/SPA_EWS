@@ -285,19 +285,107 @@ const SY_SEM4_COURSES = [
 //   Total SY: 240
 // ============================================
 // CHANGE THESE VALUES FOR FULL DATA:
-// FY_PER_DIV=60, DIVISIONS=4 -> 960 FY
-// SY_PER_DIV=60, DIVISIONS=4 -> 240 SY
-const FY_PER_DIV = 10;      // TEST: 10, FULL: 60
-const SY_PER_DIV = 10;      // TEST: 10, FULL: 60
+// Student counts - FULL DATA
 const FY_PER_DIV = 60;
 const SY_PER_DIV = 60;
 
-// Department-wise divisions (full data)
+// Department-wise divisions
 const DEPT_DIVISIONS = {
-  CE: 4,       // A,B,C,D
-  ENTC: 4,     // A,B,C,D
-  IT: 3,       // A,B,C
-  AIDS: 1       // A only
+  CE: 4,
+  ENTC: 4,
+  IT: 3,
+  AIDS: 1,
+  ECE: 1
+};
+
+// SY SEM 3 COURSES BY DEPARTMENT
+const SY_COURSES = {
+  CE: [  // Computer Engineering
+    { code: "1303101", name: "Data Structures", credits: 3 },
+    { code: "1303102", name: "Computer Organization", credits: 3 },
+    { code: "1303103", name: "Discrete Mathematics", credits: 3 },
+    { code: "1303204", name: "Data Structures Lab", credits: 2 },
+    { code: "1303205", name: "COA Lab", credits: 1 },
+  ],
+  IT: [  // Information Technology
+    { code: "3303101", name: "Data Structures & Applications", credits: 3 },
+    { code: "3303102", name: "Computer Network Technology", credits: 3 },
+    { code: "3303203", name: "DSAL", credits: 2 },
+    { code: "3303204", name: "CNTL", credits: 2 },
+  ],
+  ENTC: [  // Electronics & Telecommunication
+    { code: "2303101", name: "Signals and Systems", credits: 4 },
+    { code: "2303102", name: "Analog Circuit Design", credits: 3 },
+    { code: "2303203", name: "ACDL", credits: 1 },
+    { code: "2303104", name: "Network Analysis", credits: 3 },
+  ],
+  AIDS: [  // AI & Data Science
+    { code: "4303101", name: "Discrete Mathematics", credits: 2 },
+    { code: "4303102", name: "Data Structures", credits: 3 },
+    { code: "4303103", name: "Artificial Intelligence", credits: 3 },
+    { code: "4303204", name: "DSL", credits: 1 },
+    { code: "4303205", name: "AIDSL", credits: 2 },
+  ],
+  ECE: [  // Electronics & Computer Engineering
+    { code: "5303101", name: "Analog and Digital Electronics", credits: 3 },
+    { code: "5303202", name: "ADEL", credits: 1 },
+    { code: "5303103", name: "Operating System", credits: 3 },
+    { code: "5303104", name: "Principles of Data Structure", credits: 3 },
+    { code: "5303205", name: "PDSL", credits: 1 },
+  ],
+};
+
+// FY SEM 2 COURSES (Common for all)
+const FY_SEM2_COURSES = [
+  { code: "F-002", name: "Statistics and Calculus", credits: 4 },
+  { code: "F-005", name: "Chemical Science", credits: 2 },
+  { code: "F-006", name: "Chemical Lab", credits: 1 },
+  { code: "F-011", name: "Computer Graphics", credits: 2 },
+  { code: "F-012", name: "CG Lab", credits: 1 },
+  { code: "F-015", name: "OOP with C++", credits: 2 },
+  { code: "F-016", name: "OOP Lab", credits: 1 },
+  { code: "F-018", name: "Design Thinking Lab", credits: 1 },
+  { code: "F-019", name: "Sustainable Engineering", credits: 2 },
+  { code: "F-021", name: "Soft Skills", credits: 2 },
+];
+
+// SY SEM 4 COURSES BY DEPARTMENT
+const SY_SEM4_COURSES = {
+  CE: [  // Computer Engineering
+    { code: "1403106", name: "Software Engineering", credits: 2 },
+    { code: "1403107", name: "Database Management Systems", credits: 3 },
+    { code: "1403108", name: "Operating Systems", credits: 2 },
+    { code: "1403209", name: "OS Lab", credits: 1 },
+    { code: "1403210", name: "DBMS Lab", credits: 2 },
+  ],
+  IT: [
+    { code: "3403105", name: "Advanced DSA", credits: 2 },
+    { code: "3403106", name: "Database Systems", credits: 2 },
+    { code: "3403107", name: "Discrete Math", credits: 3 },
+    { code: "3403208", name: "ADSAL", credits: 2 },
+    { code: "3403209", name: "DISL", credits: 2 },
+  ],
+  ENTC: [
+    { code: "2403105", name: "Communication Engineering", credits: 3 },
+    { code: "2403206", name: "PCEL", credits: 1 },
+    { code: "2403107", name: "Digital Circuit Design", credits: 3 },
+    { code: "2403208", name: "DCDL", credits: 1 },
+    { code: "2403109", name: "Control Systems", credits: 3 },
+  ],
+  AIDS: [
+    { code: "4403106", name: "Machine Learning", credits: 3 },
+    { code: "4403107", name: "DBMS", credits: 2 },
+    { code: "4403108", name: "Operating Systems", credits: 2 },
+    { code: "4403109", name: "Computer Networks", credits: 1 },
+    { code: "4403210", name: "Lab Practice-I", credits: 2 },
+  ],
+  ECE: [
+    { code: "5403106", name: "Analog Communication", credits: 3 },
+    { code: "5403107", name: "Microcontroller", credits: 3 },
+    { code: "5403208", name: "ECEL-I", credits: 1 },
+    { code: "5403109", name: "OOP", credits: 3 },
+    { code: "5403210", name: "OOPL", credits: 1 },
+  ],
 };
 
 // Test values (uncomment below for testing)
@@ -417,6 +505,28 @@ async function main() {
     },
   });
 
+  // AIDS Department Admin
+  await prisma.user.create({
+    data: {
+      email: "aids.admin@spa-ews.edu.in",
+      passwordHash: adminPassword,
+      name: "AIDS Department Admin",
+      role: Role.ADMIN,
+      departmentId: aidsDept.id,
+    },
+  });
+
+  // ECE Department Admin
+  await prisma.user.create({
+    data: {
+      email: "ece.admin@spa-ews.edu.in",
+      passwordHash: adminPassword,
+      name: "ECE Department Admin",
+      role: Role.ADMIN,
+      departmentId: eceDept.id,
+    },
+  });
+
   // 4. Create Faculty
   console.log("  👨‍🏫 Creating 10 faculty members...");
   const facultyPassword = await bcrypt.hash("faculty123", 10);
@@ -500,67 +610,65 @@ async function main() {
     fyOfferings.push(offering.id);
   }
 
-  // Create SY courses
-  const sem3CourseIds: string[] = [];
-  for (const c of SY_SEM3_COURSES) {
-    const course = await prisma.course.create({
-      data: {
-        courseCode: c.code,
-        name: c.name,
-        departmentId: compDept.id,
-        credits: c.credits,
-      },
-    });
-    sem3CourseIds.push(course.id);
-  }
-
-  const sem4CourseIds: string[] = [];
-  for (const c of SY_SEM4_COURSES) {
-    const course = await prisma.course.create({
-      data: {
-        courseCode: c.code,
-        name: c.name,
-        departmentId: compDept.id,
-        credits: c.credits,
-      },
-    });
-    sem4CourseIds.push(course.id);
-  }
-
-  // 7. Create Course Offerings (assign faculty to courses)
-  console.log("  🎓 Creating course offerings...");
-  const sem3Offerings: string[] = [];
-  for (let i = 0; i < sem3CourseIds.length; i++) {
-    // Assign faculty 1-5 to sem 3 courses
-    const offering = await prisma.courseOffering.create({
-      data: {
-        courseId: sem3CourseIds[i],
-        facultyId: facultyProfiles[i + 1].id, // Skip HOD (index 0)
-        semester: 3,
-        divisionTarget: "A",
-        lecturesConducted: randInt(30, 45),
-      },
-    });
-    sem3Offerings.push(offering.id);
-  }
-
-  const sem4Offerings: string[] = [];
-  for (let i = 0; i < sem4CourseIds.length; i++) {
-    const offering = await prisma.courseOffering.create({
-      data: {
-        courseId: sem4CourseIds[i],
-        facultyId: facultyProfiles[i + 5].id, // Faculty 5-9
-        semester: 4,
-        divisionTarget: "A",
-        lecturesConducted: randInt(30, 45),
-      },
-    });
-    sem4Offerings.push(offering.id);
+// Create SY courses for all departments
+  console.log("  📚 Creating SY courses for all departments...");
+  
+  const deptMap: Record<string, { id: string }> = {
+    CE: compDept,
+    ENTC: entcDept,
+    IT: itDept,
+    AIDS: aidsDept,
+    ECE: eceDept,
+  };
+  
+  // Store course IDs and offerings for each dept
+  const deptCourses: Record<string, { sem3: string[]; sem4: string[] }> = {};
+  const deptOfferings: Record<string, { sem3: string[]; sem4: string[] }> = {};
+  
+  for (const [deptCode, dept] of Object.entries(deptMap)) {
+    // Create Sem 3 courses
+    const sem3Ids: string[] = [];
+    for (const c of SY_COURSES[deptCode as keyof typeof SY_COURSES] || []) {
+      const course = await prisma.course.create({
+        data: { courseCode: c.code, name: c.name, departmentId: dept.id, credits: c.credits },
+      });
+      sem3Ids.push(course.id);
+    }
+    
+    // Create Sem 4 courses
+    const sem4Ids: string[] = [];
+    for (const c of SY_SEM4_COURSES[deptCode as keyof typeof SY_SEM4_COURSES] || []) {
+      const course = await prisma.course.create({
+        data: { courseCode: c.code, name: c.name, departmentId: dept.id, credits: c.credits },
+      });
+      sem4Ids.push(course.id);
+    }
+    
+    deptCourses[deptCode] = { sem3: sem3Ids, sem4: sem4Ids };
+    
+    // Create offerings for each course
+    const sem3Off: string[] = [];
+    for (let i = 0; i < sem3Ids.length; i++) {
+      const offering = await prisma.courseOffering.create({
+        data: { courseId: sem3Ids[i], facultyId: facultyProfiles[i % facultyProfiles.length].id, semester: 3, divisionTarget: "A", lecturesConducted: randInt(30, 45) },
+      });
+      sem3Off.push(offering.id);
+    }
+    
+    const sem4Off: string[] = [];
+    for (let i = 0; i < sem4Ids.length; i++) {
+      const offering = await prisma.courseOffering.create({
+        data: { courseId: sem4Ids[i], facultyId: facultyProfiles[i % facultyProfiles.length].id, semester: 4, divisionTarget: "A", lecturesConducted: randInt(30, 45) },
+      });
+      sem4Off.push(offering.id);
+    }
+    
+    deptOfferings[deptCode] = { sem3: sem3Off, sem4: sem4Off };
   }
 
   // 8. Create Students
   console.log("  🧑‍🎓 Creating students...\n");
-  const studentPassword = await bcrypt.hash("student123", 10);
+  const studentPassword = await bcrypt.hash("spaews123", 10);
   const usedNames = new Set<string>();
   let studentIndex = 0;
 
@@ -576,7 +684,7 @@ async function main() {
   ) => {
   console.log(`  Creating ${count} students for Sem ${semester} ${deptCode} Div ${division} (${academicYear})...`);
   for (let i = 0; i < count; i++) {
-      studentIndex++;
+    studentIndex++;
       let nameResult = generateStudentName();
       // Ensure unique names  
       while (usedNames.has(nameResult.name)) {
@@ -716,18 +824,42 @@ async function main() {
   const syAcademicYear = "2024-25";
   
   // Create FY students (Sem 1) - all departments with their divisions
-  const deptCodes = ["CE", "ENTC", "IT", "AIDS"];
+  const allDepts = ["CE", "ENTC", "IT", "AIDS", "ECE"];
   
-  for (const deptCode of deptCodes) {
-    const numDivs = DEPT_DIVISIONS[deptCode as keyof typeof DEPT_DIVISIONS];
+  for (const deptCode of allDepts) {
+    const numDivs = DEPT_DIVISIONS[deptCode as keyof typeof DEPT_DIVISIONS] || 1;
     for (let d = 0; d < numDivs; d++) {
       await createStudentBatch(1, deptCode, divisions[d], FY_PER_DIV, fyOfferingsList, 1, FACULTY_DEFS.length - 1, fyAcademicYear);
     }
   }
 
-  // Create SY students (Sem 3) - CE only (4 divisions)
-  for (let d = 0; d < DEPT_DIVISIONS.CE; d++) {
-    await createStudentBatch(3, "CE", divisions[d], SY_PER_DIV, sem3Offerings, 1, FACULTY_DEFS.length - 1, syAcademicYear);
+  // Create SY students (Sem 3) - all departments
+  for (const deptCode of allDepts) {
+    const numDivs = DEPT_DIVISIONS[deptCode as keyof typeof DEPT_DIVISIONS] || 1;
+    const offerings = deptOfferings[deptCode]?.sem3 || fyOfferingsList;
+    for (let d = 0; d < numDivs; d++) {
+      await createStudentBatch(3, deptCode, divisions[d], SY_PER_DIV, offerings, 1, FACULTY_DEFS.length - 1, syAcademicYear);
+    }
+  }
+  
+  // Also create Sem 2 and Sem 4 data (currently ongoing even semester)
+  // For ML analysis - historical data completed
+  console.log("  📊 Creating Sem 2 (completed) data for FY students...");
+  for (const deptCode of allDepts) {
+    const numDivs = DEPT_DIVISIONS[deptCode as keyof typeof DEPT_DIVISIONS] || 1;
+    const offerings = fyOfferingsList; // Use FY sem1 courses as sem2 courses for simplicity
+    for (let d = 0; d < numDivs; d++) {
+      await createStudentBatch(2, deptCode, divisions[d], FY_PER_DIV, offerings, 1, FACULTY_DEFS.length - 1, fyAcademicYear);
+    }
+  }
+  
+  console.log("  📊 Creating Sem 4 (completed) data for SY students...");
+  for (const deptCode of allDepts) {
+    const numDivs = DEPT_DIVISIONS[deptCode as keyof typeof DEPT_DIVISIONS] || 1;
+    const offerings = deptOfferings[deptCode]?.sem4 || fyOfferingsList;
+    for (let d = 0; d < numDivs; d++) {
+      await createStudentBatch(4, deptCode, divisions[d], SY_PER_DIV, offerings, 1, FACULTY_DEFS.length - 1, syAcademicYear);
+    }
   }
 
   // 9. Print Credentials Summary
