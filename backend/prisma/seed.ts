@@ -8,915 +8,438 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-// ─── Naming Arrays - EXTENSIVE for 1000+ students ──────────────────────
+// ─── FULL FACULTY DATA (178 MEMBERS) ─────────────────────────
 
-const maharashtrianFirstNames = {
-  male: [
-    // Group 1 - Common
-    "Aarav", "Aditya", "Aniket", "Arjun", "Atharva", "Chinmay", "Devendra",
-    "Ganesh", "Harsh", "Jayesh", "Kartik", "Mandar", "Mihir", "Nikhil",
-    "Omkar", "Pranav", "Prathamesh", "Rahul", "Rushikesh", "Sachin",
-    "Sagar", "Sahil", "Sanket", "Saurabh", "Shubham", "Siddharth",
-    "Soham", "Tanmay", "Tejas", "Vaibhav", "Vedant", "Vikas",
-    "Vinayak", "Vishal", "Yash", "Akshay", "Amey", "Bhavesh",
-    // Group 2 - More
-    "Kiran", "Madhav", "Nilesh", "Onkar", "Pankaj", "Quadir",
-    "Raj", "Rohan", "Sameer", "Tushar", "Umesh", "Vicky",
-    "Yogesh", "Zeeshan", "Ashutosh", "Balu", "Chetan", "Darshan",
-    // Group 3
-    "Eknath", "Freed", "Gopal", "Harish", "Ishwar", "Jeet",
-    "Kalyan", "Lakshman", "Mohan", "Ojas", "Parth", "Quantum",
-    "Raghav", "Tara", "Uddhav", "Vasudev", "Warrior", "Xavier",
-    // Group 4
-    "Yashwant", "Zuber", "Amit", "Bharat", "Dhanraj", "Girish",
-    "Hemant", "Jatin", "Ketan", "Lomesh", "Manoj", "Pravin",
-    "Tausif", "Vicky", "Anmol", "Basav", "Chaitanya", "Dnyanesh",
-    // Group 5
-    "Ekaling", "Gajanan", "Hanuman", "Indraj", "Jagdish", "Krishna",
-    "Laxman", "Madhusudan", "Narayan", "Pundlik", "Raghunath", "Shridhar",
-    "Tryambak", "Umakant", "Vishwanath", "Yagnesh", "Zindaprasad",
-    // Group 6
-    "Abhishek", "Bhushan", "Chandrakant", "Dinesh", "Eshwar", "Frank",
-    "Girish", "Hrishikesh", "Ishant", "Jignesh", "Kaustubh", "Lakshay",
-    // Group 7  
-    "Mangesh", "Nikhilesh", "Oankar", "Prasad", "Quintan", "Rajesh",
-    "Shashank", "Tushar", "Upendra", "Vijay", "Yash", "Zaheer",
-    // Group 8
-    "Akshay", "Amar", "Balaji", "Chetan", "Darshan", "Eknath",
-    "Firoj", "Gopal", "Hiren", "Irfan", "Jeevan", "Kishor",
-    // Group 9
-    "Lakshman", "Manoj", "Niraj", "Onkar", "Pravin", "Rahul",
-    "Santosh", "Tukaram", "Uddhav", "Viraj", "Walmik", "Yashpal",
-    // Group 10
-    "Abhay", "Bipin", "Chetan", "Dipak", "Eknath", "Farhan",
-    "Gulab", "Himmat", "Imran", "Juber", "Kaif", "Latif",
-    // Additional
-    "Mohan", "Nawab", "Osman", "Pramod", "Qayyum", "Rauf",
-    "Sakib", "Tariq", "Usman", "Vaijanath", "Wafaa", "Yunus",
+const FACULTY_DATA = {
+  FY: [
+    { name: "SHARADCHANDRA TUKARAM GAWHALE", desig: "ASSO.PROFESSOR", join: "2017-09-01", qual: "Ph.D.- Chemistry" },
+    { name: "EMANI MAHESWARA REDDY", desig: "ASSTT.PROFESSOR", join: "2006-08-16", qual: "M.E.(CIVIL)" },
+    { name: "ASMITA AJAY JOSHI", desig: "ASSTT.PROFESSOR", join: "1996-07-15", qual: "M.E.(Electrical)" },
+    { name: "BHAVNA MUKESH VYAS", desig: "ASSTT.PROFESSOR", join: "1996-08-01", qual: "Ph.D.- Chemical Engg." },
+    { name: "AVINASH MADHUKARRAO DESHMUKH", desig: "ASSTT.PROFESSOR", join: "2000-09-20", qual: "Ph.D. - Mechanical Engineering" },
+    { name: "HRUSHIKESH MADHUKAR HIWASE", desig: "Workshop Suptd.", join: "2004-09-06", qual: "M.E.(MECHANICAL)" },
+    { name: "SHIVAJI VITTHALRAO MUNDHE", desig: "ASSTT.PROFESSOR", join: "2008-07-01", qual: "Ph.D.- Mechanical Engineering" },
+    { name: "NITEEN PANDITRAO SAPKAL", desig: "ASSTT.PROFESSOR", join: "2009-03-02", qual: "M.E.(MECHANICAL)" },
+    { name: "MAKRAND DINANATH BANDKAR", desig: "ASSTT.PROFESSOR", join: "2009-12-01", qual: "M.E.(PRODUCTION)" },
+    { name: "SUJATA ASHOK BARDE", desig: "ASSTT.PROFESSOR", join: "2011-02-10", qual: "M.E.(CIVIL)" },
+    { name: "ABHISHEK MAKARAND KULKARNI", desig: "ASSTT.PROFESSOR", join: "2012-07-16", qual: "M.Sc.(Org.Chemistry)" },
+    { name: "KRANTI RAMRAO JADHAV", desig: "ASSTT.PROFESSOR", join: "2012-07-16", qual: "M.E.(CIVIL)" },
+    { name: "AMOL ASHOK CHAVAN", desig: "ASSTT.PROFESSOR", join: "2012-07-26", qual: "M.E.(PRODUCTION)" },
+    { name: "PRASHANT DADASAHEB JADHAV", desig: "ASSTT.PROFESSOR", join: "2013-07-06", qual: "M.E.(CIVIL)" },
+    { name: "SHRIKANT DINKAR HADE", desig: "ASSTT.PROFESSOR", join: "2013-07-18", qual: "M.E.(MECHANICAL)" },
+    { name: "VIVEK BANESHWAR PATOLE", desig: "ASSTT.PROFESSOR", join: "2015-07-24", qual: "M.Sc.(Maths)" },
+    { name: "HRUSHIKESH SHIRISH KHATRI", desig: "ASSTT.PROFESSOR", join: "2016-12-15", qual: "M.Sc.(Physics)" },
+    { name: "NIKHIL VASANT SANGADE", desig: "ASSTT.PROFESSOR", join: "2017-06-27", qual: "M.Tech. (Thermal Engg.)" },
+    { name: "SUMIT UTTAM BAGADE", desig: "ASSTT.PROFESSOR", join: "2017-06-27", qual: "M.Tech. (Electrical)" },
+    { name: "PRASHANT GANPAT UMAPE", desig: "ASSTT.PROFESSOR", join: "2017-07-21", qual: "Ph.D.- Chemistry" },
+    { name: "PANKAJ SUMERSING PATIL", desig: "ASSTT.PROFESSOR", join: "2019-07-15", qual: "M.Sc.(Maths)" },
+    { name: "NADEEM ANWER NISAR AHMED", desig: "ASSTT.PROFESSOR", join: "2021-01-01", qual: "M.Tech.(Ind. Maths)" },
+    { name: "KAUSTUBH DILIPRAO KULKARNI", desig: "ASSTT.PROFESSOR", join: "2021-01-01", qual: "M.Sc.(Physics)" },
+    { name: "ROHAN RAVINDRA VARDHAMAN", desig: "ASSTT.PROFESSOR", join: "2021-01-01", qual: "M.E.(CIVIL)" },
+    { name: "ANIL SHRAWAN BODHE", desig: "ASSTT.PROFESSOR", join: "2021-01-01", qual: "M.Tech. (POWER ELCTRX)" },
+    { name: "MANSINGH KUMAR KADAM", desig: "ASSTT.PROFESSOR", join: "2021-08-26", qual: "M.Sc.(Maths)" },
+    { name: "SUJATA SHIVAPPA PATIL", desig: "ASSTT.PROFESSOR", join: "2021-08-26", qual: "M.Sc.(Maths)" },
+    { name: "ROHIDAS TUKARAM MALI", desig: "ASSTT.PROFESSOR", join: "2021-11-18", qual: "M.Sc.(Physics)" },
+    { name: "ASMA NASAR SAYYAD", desig: "ASSTT.PROFESSOR", join: "2021-12-01", qual: "M.E.(Mechanical)" },
+    { name: "KIRAN LALASO BHOITE", desig: "ASSTT.PROFESSOR", join: "2023-01-02", qual: "M.E.(Mechanical)" },
+    { name: "SAGAR ARVIND KALE", desig: "ASSTT.PROFESSOR", join: "2023-09-04", qual: "M.E.(Structures)" },
+    { name: "KANAKA KAUSHIK KOLHATKAR", desig: "ASSTT.PROFESSOR", join: "2024-01-10", qual: "M.Sc. (Maths)" },
+    { name: "MANDREKAR TANVESH SANDIP", desig: "ASSTT.PROFESSOR", join: "2024-02-01", qual: "M.Sc. (Maths)" },
+    { name: "MOHINI SADASHIV GHADAGE", desig: "ASSTT.PROFESSOR", join: "2024-08-01", qual: "M.E.(Electrical)" },
+    { name: "JAYANT SUDHIR YADAV", desig: "ASSTT.PROFESSOR", join: "2024-10-07", qual: "Ph. D. (Physics)" },
+    { name: "BHIMASHANKAR PRAKASH KUMBHARE", desig: "ASSTT.PROFESSOR", join: "2025-08-01", qual: "M.E.(Mechanical)" },
+    { name: "PANKAJ KUMAR SAHU", desig: "ASSTT.PROFESSOR", join: "2025-11-17", qual: "Post Doctorate.,Ph.D(Electrical)" }
   ],
-  female: [
-    // Group 1 - Common
-    "Aishwarya", "Ananya", "Ankita", "Apoorva", "Dhanashree", "Gauri",
-    "Isha", "Janhavi", "Kajal", "Komal", "Madhura", "Manasi",
-    "Mrunmayee", "Neha", "Pallavi", "Pooja", "Prajakta", "Priya",
-    "Radhika", "Rina", "Riya", "Rutuja", "Sakshi", "Sayali",
-    "Shruti", "Sneha", "Sonal", "Swati", "Tanvi", "Tejal",
-    // Group 2
-    "Vaishnavi", "Vrushali", "Yukta", "Aarya", "Bhavana", "Chhaya",
-    "Divya", "Eva", "Farmiza", "Gita", "Harsha", "Ira",
-    // Group 3
-    "Jaya", "Kavita", "Lata", "Mala", "Nanda", "Ovi",
-    "Pari", "Quara", "Rani", "Sita", "Tara", "Uma",
-    // Group 4
-    "Vidya", "Wasana", "Xena", "Yashodhara", "Zara", "Ashwini",
-    "Bhakti", "Chetna", "Deepti", "Esha", "Fiona", "Gayatri",
-    // Group 5
-    "Hansika", "Ishita", "Jiya", "Kanika", "Likitha", "Mithila",
-    "Nikita", "Olive", "Poonam", "Queen", "Riyaa", "Sana",
-    // Group 6
-    "Tisha", "Umaa", "Veda", "Winnie", "Xiyam", "Yashika",
-    "Zeenat", "Aafreen", "Bisma", "Chandni", "Dua", "Farzana",
-    // Group 7
-    "Gulab", "Hiral", "Insha", "Jahanvi", "Kashvi", "Lisha",
-    // Group 8
-    "Maitri", "Niyati", "Ojasvi", "Prachi", "Qirat", "Riddhi",
-    // Group 9
-    "Srishti", "Tiya", "Uma", "Vani", "Wrichi", "Xiya",
-    // Group 10
-    "Yashvi", "Zara", "Aditi", "Bhavika", "Chhavi", "Dipti",
-    // Additional
-    "Elima", "Farial", "Gowri", "Harsimran", "Ishita", "Jasleen",
-    "Kiran", "Laveena", "Mona", "Navkiran", "Omi", "Pihu",
-    "Riya", "Siya", "Tiasha", "Uttara", "Vidyut", "Weda",
+  CE: [
+    { name: "SARANG ACHYUT JOSHI", desig: "PROFESSOR", join: "1991-07-01", qual: "Ph.D.- Computer Engineering" },
+    { name: "BALWANT AMBADAS SONKAMBLE", desig: "PROFESSOR (PG-DS)", join: "1997-08-05", qual: "Ph.D.- Computer Engineering" },
+    { name: "MUKTA SUNIL TAKALIKAR", desig: "ASSO.PROFESSOR", join: "1996-11-26", qual: "Ph.D.- Computer Science & Tech." },
+    { name: "ARATI RAGHURAJ DESHPANDE", desig: "ASSO.PROFESSOR (PG-CE)", join: "2002-08-01", qual: "Ph.D.- Computer Engineering" },
+    { name: "GEETANJALI VINAYAK KALE", desig: "ASSO.PROFESSOR", join: "2002-08-07", qual: "Ph.D.- Computer Engineering" },
+    { name: "SHEETAL SAGAR SONAWANE", desig: "ASSO.PROFESSOR", join: "2003-01-01", qual: "Ph.D.- Computer Engineering" },
+    { name: "ARCHANA SANTOSH GHOTKAR", desig: "ASSO.PROFESSOR", join: "2005-12-01", qual: "Ph.D.- Computer Engineering" },
+    { name: "REKHA ANILKUMAR KULKARNI", desig: "ASSTT.PROFESSOR", join: "1997-08-25", qual: "Ph.D.- Computer Science & Tech." },
+    { name: "KALYANI CHETAN WAGHMARE", desig: "ASSTT.PROFESSOR (PG-DS)", join: "1999-10-01", qual: "Ph.D.- Computer Engineering" },
+    { name: "ANUPAMA GANESH PHAKATKAR", desig: "ASSTT.PROFESSOR", join: "2002-08-08", qual: "Ph.D.- Computer Engineering" },
+    { name: "PRANJALI PRASHANT JOSHI", desig: "ASSTT.PROFESSOR", join: "2005-06-27", qual: "M.E.(COMPUTER)" },
+    { name: "PREETI ANAND JAIN", desig: "ASSTT.PROFESSOR", join: "2005-07-11", qual: "M.Tech.(I.T.)" },
+    { name: "MADHURI SACHIN WAKODE", desig: "ASSTT.PROFESSOR", join: "2005-08-01", qual: "M.E.(COMPUTER)" },
+    { name: "PRAVIN RAMDAS PATIL", desig: "ASSTT.PROFESSOR", join: "2005-09-03", qual: "Ph.D.- Computer Engineering" },
+    { name: "SHITAL NAYAN GIRME", desig: "ASSTT.PROFESSOR", join: "2006-07-10", qual: "Ph.D.- Computer Engineering" },
+    { name: "RATNAMALA KUMAR SUDHIR PASWAN", desig: "ASSTT.PROFESSOR", join: "2006-12-21", qual: "M.E.(COMPUTER)" },
+    { name: "SUMIT SATISHRAO SHEVTEKAR", desig: "ASSTT.PROFESSOR", join: "2008-01-18", qual: "M.E.(COMPUTER)" },
+    { name: "ASHWINI DIGAMBAR BUNDELE", desig: "ASSTT.PROFESSOR", join: "2009-09-22", qual: "M.E.(COMPUTER)" },
+    { name: "ARUNDHATI ATUL CHANDORKAR", desig: "ASSTT.PROFESSOR", join: "2010-10-01", qual: "M.E.(COMPUTER)" },
+    { name: "YOGESH ASHOK HANDGE", desig: "ASSTT.PROFESSOR", join: "2011-08-31", qual: "M.Tech.(S/W Engg.)" },
+    { name: "VIRENDRA VISHNUDAS BAGADE", desig: "ASSTT.PROFESSOR (PG-CE)", join: "2011-12-10", qual: "M.Tech. (I.T.)" },
+    { name: "MAYUR SUBHASH CHAVAN", desig: "ASSTT.PROFESSOR", join: "2012-07-19", qual: "M.TECH.(C.S.E.)" },
+    { name: "DIPALI DATTATRAY KADAM", desig: "ASSTT.PROFESSOR", join: "2012-08-02", qual: "M.TECH.(I.T.)" },
+    { name: "SNEHAL PARAG SHINTRE", desig: "ASSTT.PROFESSOR", join: "2014-06-02", qual: "M.E.(COMPUTER)" },
+    { name: "PARAG JAYGOPAL JAMBHULKAR", desig: "ASSTT.PROFESSOR", join: "2014-11-24", qual: "M.E.(C.S.E.)" },
+    { name: "PALLAVI SANJAY JOSHI", desig: "ASSTT.PROFESSOR", join: "2015-06-02", qual: "M.E.(C.S.E.)" },
+    { name: "URMILA SHRIKANT PAWAR", desig: "ASSTT.PROFESSOR", join: "2015-06-08", qual: "M.E.(COMPUTER)" },
+    { name: "RUTUJA ABHIJIT KULKARNI", desig: "ASSTT.PROFESSOR", join: "2016-06-20", qual: "M.E.(C.S.E.)" },
+    { name: "BHUMESH PURUSHOTTAM MASRAM", desig: "ASSTT.PROFESSOR", join: "2017-06-27", qual: "M.Tech. (Computer)" },
+    { name: "MANISH RAVINDRA JANSARI", desig: "ASSTT.PROFESSOR", join: "2017-06-27", qual: "M.Tech. (Computer)" },
+    { name: "VIJAYENDRA SANJAY GAIKWAD", desig: "ASSTT.PROFESSOR", join: "2020-09-02", qual: "M.E.(C.S.E.)" },
+    { name: "KOPAL GANGRADE", desig: "ASSTT.PROFESSOR", join: "2021-01-25", qual: "M.Tech.(C.S.E.)" },
+    { name: "MADHURI VIKAS MANE", desig: "ASSTT.PROFESSOR", join: "2021-08-24", qual: "M.E.(C.S.E.)" },
+    { name: "SHWETA SHAH", desig: "ASSTT.PROFESSOR", join: "2022-01-06", qual: "M.Tech. (Computer)" },
+    { name: "POOJA TRIMBAK KOHOK", desig: "ASSTT.PROFESSOR", join: "2022-03-02", qual: "M.E.(Computer)" },
+    { name: "PRANALI RAJENDRA NAOGHARE", desig: "ASSTT.PROFESSOR", join: "2022-03-02", qual: "M.Tech. (IT)" },
+    { name: "NIKITA YOGESH KAPADNIS", desig: "ASSTT.PROFESSOR", join: "2022-07-04", qual: "M.E.(Computer)" },
+    { name: "DIPIKA DILIP BHAIYYA", desig: "ASSTT.PROFESSOR", join: "2022-07-04", qual: "M.Tech. (C.S.E.)" },
+    { name: "PRIYANKA SATISH SHAHANE", desig: "ASSTT.PROFESSOR", join: "2022-07-04", qual: "M.Tech.(CSE.)" },
+    { name: "RAJANI RAJESH JADHAV", desig: "ASSTT.PROFESSOR", join: "2022-08-25", qual: "M.E.(Computer)" },
+    { name: "VAISHALI RAMESH KANDEKAR", desig: "ASSTT.PROFESSOR", join: "2022-10-07", qual: "M.E.(Computer)" },
+    { name: "SAMADHAN WALU JADHAV", desig: "ASSTT.PROFESSOR", join: "2022-12-15", qual: "M.E.(Computer)" },
+    { name: "KIMAYA RAHUL URANE", desig: "ASSTT.PROFESSOR", join: "2022-12-19", qual: "M.E. (Data Science)" },
+    { name: "JAYSHREE SACHIN MAHAJAN", desig: "ASSTT.PROFESSOR", join: "2023-01-16", qual: "M.E.(Computer)" },
+    { name: "HEMA SAGAR KUMBHAR", desig: "ASSTT.PROFESSOR", join: "2024-08-01", qual: "M. E. (I.T)" },
+    { name: "MADHURI SOMNATH PATIL", desig: "ASSTT.PROFESSOR", join: "2024-10-08", qual: "M. E. (I.T)" },
+    { name: "SARIKA ABHIJEET PAWAR", desig: "ASSTT.PROFESSOR", join: "2024-08-23", qual: "M.E.(Computer)" },
+    { name: "ACHALA RAGHVENDRA DESHPANDE", desig: "ASSTT.PROFESSOR", join: "2024-08-27", qual: "M.Tech. (C.S.)" },
+    { name: "KUMARI DEEPIKA", desig: "ASSTT.PROFESSOR", join: "2024-08-27", qual: "M.Tech. (C.S.T.)" },
+    { name: "HINA KAUSAR FEROZ KHAN", desig: "ASSTT.PROFESSOR", join: "2025-08-18", qual: "M.E.(Computer)" }
   ],
+  ENTC: [
+    { name: "SANJAY TRYMBAK GANDHE", desig: "PRINCIPAL", join: "2022-09-27", qual: "Ph.D.- E&TC Engg." },
+    { name: "RAVINDER BHADRAIAH YERRAM", desig: "PROFESSOR", join: "1996-07-30", qual: "Ph.D.- Electronics & Comm." },
+    { name: "GIRISH SHRIKISAN MUNDADA", desig: "PROFESSOR", join: "1994-08-09", qual: "Ph.D.- E&TC Engg." },
+    { name: "MOUSAMI VAIBHAV MUNOT", desig: "ASSO.PROFESSOR", join: "2005-01-01", qual: "Ph.D.- E&TC Engg." },
+    { name: "RUPESH CHANDRAKANT JAISWAL", desig: "ASSO.PROFESSOR", join: "1999-04-09", qual: "Ph.D.- E&TC Engg." },
+    { name: "SANDEEP VINAYAK GAIKWAD", desig: "ASSO.PROFESSOR", join: "2007-07-11", qual: "Ph.D.- E&TC Engg." },
+    { name: "PRADIP SHANKAR VARADE", desig: "ASSO.PROFESSOR", join: "2002-01-04", qual: "Ph.D.- Electronics Engg." },
+    { name: "RAJENDRA GANGARAM YELALWAR", desig: "ASSO.PROFESSOR", join: "2003-08-08", qual: "Ph.D.- E&TC Engg." },
+    { name: "SATISH SUDHAKAR NARKHEDE", desig: "ASSO.PROFESSOR", join: "2024-12-09", qual: "Ph.D.- E&TC Engg." },
+    { name: "SREEMATHY RAMESH", desig: "ASSO.PROFESSOR", join: "2024-12-09", qual: "Ph.D.- Electronics Engg." },
+    { name: "MOUSAMI PRASHANT TURUK", desig: "ASSTT.PROFESSOR", join: "2003-01-01", qual: "Ph.D.- E&TC Engg." },
+    { name: "NITIN BARSU PATIL", desig: "ASSTT.PROFESSOR", join: "2006-07-07", qual: "M.E.(E&TC)" },
+    { name: "VAIBHAV BHARATRAO VAIJAPURKAR", desig: "ASSTT.PROFESSOR", join: "2007-07-07", qual: "Ph.D.- E&TC Engg." },
+    { name: "ANNAGHA ARVIND BIDKAR", desig: "ASSTT.PROFESSOR", join: "2007-07-16", qual: "M.E.(ELECTRONICS)" },
+    { name: "DEEPAK MADANRAO SHINDE", desig: "ASSTT.PROFESSOR", join: "2008-07-01", qual: "M.E.(ELECTRONICS)" },
+    { name: "MAHESH ANANDRAO GANGARDE", desig: "ASSTT.PROFESSOR", join: "2008-07-01", qual: "Ph.D.- Electronics Engg." },
+    { name: "AMOL SUKHADEORAO INGOLE", desig: "ASSTT.PROFESSOR", join: "2008-07-01", qual: "M.E.(ELECTRONICS)" },
+    { name: "SUNIL SHRIPAL KHOT", desig: "ASSTT.PROFESSOR (PG-E&C)", join: "2008-07-03", qual: "M.E.(E&TC)" },
+    { name: "LALIT PURUSHOTTAM PATIL", desig: "ASSTT.PROFESSOR", join: "2009-12-01", qual: "M.E.(ELECTRONICS)" },
+    { name: "SHAHADEV DATTATRAYA HAKE", desig: "ASSTT.PROFESSOR", join: "2011-12-07", qual: "M.E.E&TC - MICROWAVE" },
+    { name: "RISHIKESH JANARDAN SUTAR", desig: "ASSTT.PROFESSOR", join: "2014-06-02", qual: "M.E.(Electronics)" },
+    { name: "NILESH SURESH SHIRUDE", desig: "ASSTT.PROFESSOR", join: "2014-09-04", qual: "M.Tech.(Electronics)" },
+    { name: "HARSH SHARADKUMAR THAKAR", desig: "ASSTT.PROFESSOR", join: "2014-06-16", qual: "M.E.(Electronics)" },
+    { name: "SAKSHI MAHESH HOSAMANI", desig: "ASSTT.PROFESSOR", join: "2014-07-01", qual: "M.E.(E&TC)" },
+    { name: "ANKITA KETAN PATEL", desig: "ASSTT.PROFESSOR", join: "2019-06-18", qual: "M.Tech. (E&TC)" },
+    { name: "SIDDHESH NARENDRA UPASANI", desig: "ASSTT.PROFESSOR", join: "2019-06-25", qual: "M.Tech.(E&TC)" },
+    { name: "MANDAR NITIN KAKADE", desig: "ASSTT.PROFESSOR", join: "2021-01-01", qual: "Ph.D.- Electronics & Comm. Engg" },
+    { name: "BHAKTI DEEPAK KADAM", desig: "ASSTT.PROFESSOR", join: "2021-01-01", qual: "M.Tech.(Electronics)" },
+    { name: "HEMANTKUMAR BAPU MALI", desig: "ASSTT.PROFESSOR", join: "2021-08-02", qual: "M.E.(Electronics)" },
+    { name: "ANAGHA VIJAYSINHA RAJPUT", desig: "ASSTT.PROFESSOR", join: "2021-08-25", qual: "Ph.D.-Wireless Sensor Network" },
+    { name: "PRAGTEE BHAGVAN TATHE", desig: "ASSTT.PROFESSOR", join: "2021-08-26", qual: "M.E. (E&TC)" },
+    { name: "SHRIDEVI SUKHADEO VASEKAR", desig: "ASSTT.PROFESSOR", join: "2022-03-10", qual: "Ph.D.- E&TE Engg." },
+    { name: "MANISHA JAYANT SAGADE", desig: "ASSTT.PROFESSOR", join: "2022-03-17", qual: "M.E. (E&TC)" },
+    { name: "SONALI VIJAY SHINKAR", desig: "ASSTT.PROFESSOR", join: "2022-04-19", qual: "Ph.D.- E& C Engg." },
+    { name: "NILESH GEORGE NIRMAL", desig: "ASSTT.PROFESSOR", join: "2022-07-04", qual: "M.E.(Electronics)" },
+    { name: "KOMAL MAHADEO MASAL", desig: "ASSTT.PROFESSOR", join: "2022-08-01", qual: "M.E. (Dig.Sys.)" },
+    { name: "ASHWINI RAJARAM BANKAR", desig: "ASSTT.PROFESSOR", join: "2024-08-16", qual: "M.E. (E&TC)" },
+    { name: "TANISHA SANJAYKUMAR LONDHE", desig: "ASSTT.PROFESSOR", join: "2024-08-26", qual: "M.E.(Electronics)" },
+    { name: "VAISHALI SANJAY KULKARNI", desig: "ASSTT.PROFESSOR", join: "2024-08-30", qual: "Ph.D.- E&TC Engg." },
+    { name: "PRIYANKA SWAPNIL AGNIHOTRI", desig: "ASSTT.PROFESSOR", join: "2024-08-31", qual: "M.E. (E&TC)" },
+    { name: "SACHIN DATTATRAYA SHINGADE", desig: "ASSTT.PROFESSOR", join: "2025-07-04", qual: "M.E. (E&TC)" },
+    { name: "SWAPNIL VITTHAL TATHE", desig: "ASSTT.PROFESSOR", join: "2025-07-10", qual: "M.E. (E&TC)" },
+    { name: "KANCHAN PRASAD JOSHI", desig: "ASSTT.PROFESSOR", join: "2026-01-05", qual: "M.E. (E&TC)" },
+    { name: "SHAVETA THAKRAL", desig: "ASSTT.PROFESSOR", join: "2026-01-13", qual: "Ph.D" }
+  ],
+  IT: [
+    { name: "EMMANUEL MARK", desig: "PROFESSOR", join: "2003-06-02", qual: "Ph.D.- Computer Science & Engg." },
+    { name: "GIRISH PANDURANG POTDAR", desig: "ASSO.PROFESSOR", join: "1995-06-07", qual: "Ph.D.- Computer Science & Engg" },
+    { name: "ANANT MADHUKAR BAGADE", desig: "ASSO.PROFESSOR", join: "2001-01-02", qual: "Ph.D.- Computer Science & Engg." },
+    { name: "SHYAM BABASAHEB DESHMUKH", desig: "ASSTT.PROFESSOR", join: "1999-10-01", qual: "Ph.D.- Computer Science & Engg." },
+    { name: "SACHIN SURESH PANDE", desig: "ASSTT.PROFESSOR", join: "2002-09-05", qual: "M.E.(I.T.)" },
+    { name: "MANISH RAMBHAU KHODASKAR", desig: "ASSTT.PROFESSOR", join: "2004-01-01", qual: "M.E.(COMPUTER)" },
+    { name: "TUSHAR ANANT RANE", desig: "ASSTT.PROFESSOR", join: "2005-07-11", qual: "M.E.(COMPUTER)" },
+    { name: "KIRTI YOGESH DIGHOLKAR", desig: "ASSTT.PROFESSOR", join: "2005-08-01", qual: "M.E.(COMPUTER SCI.)" },
+    { name: "VISHAL RAMESH JAISWAL", desig: "ASSTT.PROFESSOR", join: "2006-01-13", qual: "M.E.(COMPUTER)" },
+    { name: "RACHNA AMISH KARNAVAT", desig: "ASSTT.PROFESSOR", join: "2006-08-01", qual: "M.E.(C.S.E.)" },
+    { name: "RAVINDRA BABURAO MURUMKAR", desig: "ASSTT.PROFESSOR", join: "2006-08-28", qual: "M.E.(COMPUTER)" },
+    { name: "NAMAN VIJAY BURADKAR", desig: "ASSTT.PROFESSOR", join: "2007-01-22", qual: "M.E.(COMPUTER)" },
+    { name: "SACHIN DASHARATH SHELKE", desig: "ASSTT.PROFESSOR", join: "2007-06-01", qual: "M.Tech. (INFO.TECH.)" },
+    { name: "SANDEEP RAMBHAU WARHADE", desig: "ASSTT.PROFESSOR", join: "2007-07-14", qual: "M.Tech. (INFO.TECH.)" },
+    { name: "SUMITRA AMIT JAKHETE", desig: "ASSTT.PROFESSOR", join: "2009-10-03", qual: "M.E.(COMPUTER)" },
+    { name: "ABHINAY GULABRAO DHAMANKAR", desig: "ASSTT.PROFESSOR", join: "2011-12-03", qual: "M.E.(COMPUTER)" },
+    { name: "JAGDISH KASHINATH KAMBLE", desig: "ASSTT.PROFESSOR", join: "2017-07-03", qual: "M.Tech. (Info.&Com.Tech.)" },
+    { name: "ABHIJEET CHANDRAKANT KARVE", desig: "ASSTT.PROFESSOR", join: "2020-09-02", qual: "M.E.(C.S.E.)" },
+    { name: "PRAJAKTA SUBHASH SHINDE", desig: "ASSTT.PROFESSOR", join: "2021-08-24", qual: "M.E.(Computer)" },
+    { name: "JYOTI HINDURAO JADHAV", desig: "ASSTT.PROFESSOR", join: "2021-09-01", qual: "M.E.(Computer)" },
+    { name: "SWAPNAJA RAJESH HIRAY", desig: "ASSTT.PROFESSOR", join: "2022-03-02", qual: "M.E.(Computer)" },
+    { name: "AMRUTA ABHINANDAN PATIL", desig: "ASSTT.PROFESSOR", join: "2022-12-19", qual: "M.E.(Computer)" },
+    { name: "DEEPALI PRASHANT SALAPURKAR", desig: "ASSTT.PROFESSOR", join: "2023-04-06", qual: "M.E. (Computer Network)" },
+    { name: "VINIT RAJEEV TRIBHUVAN", desig: "ASSTT.PROFESSOR", join: "2023-09-01", qual: "M.E.(Computer)" },
+    { name: "SAYALI GAURAV GAIKWAD", desig: "ASSTT.PROFESSOR", join: "2024-08-12", qual: "M.E.(Computer)" },
+    { name: "AMEYA ANIL KADAM", desig: "ASSTT.PROFESSOR", join: "2024-08-20", qual: "M.E.(DS)" },
+    { name: "ARTI GORAKHNATH GHULE", desig: "ASSTT.PROFESSOR", join: "2024-08-27", qual: "M.E.(C.S.E.)" },
+    { name: "PUNAM ASHISH SHINDE", desig: "ASSTT.PROFESSOR", join: "2024-08-29", qual: "M.E.(Computer)" },
+    { name: "NEHA NIVRUTTI JAMDAR", desig: "ASSTT.PROFESSOR", join: "2024-08-31", qual: "M.E.(Computer)" },
+    { name: "HRUCHA CHANDRASHEKHAR DESHMUKH", desig: "ASSTT.PROFESSOR", join: "2025-07-02", qual: "M.E.(DS)" },
+    { name: "BHAGYASHREE SWAPNIL KADAM", desig: "ASSTT.PROFESSOR", join: "2026-01-23", qual: "M.E.(Computer)" }
+  ],
+  ECE: [
+    { name: "SUNIL KANHOBAJI MOON", desig: "ASSO.PROFESSOR", join: "1999-07-10", qual: "Ph.D.- Electronics Engg." },
+    { name: "MOHAN ANNA CHIMANNA", desig: "ASSTT.PROFESSOR", join: "2023-01-02", qual: "M.E. (E&TC)" },
+    { name: "SNEHA CHANDRAKANT NAHATKAR", desig: "ASSTT.PROFESSOR", join: "2024-08-20", qual: "M. TECH (Dig. Comm.)" },
+    { name: "SUDERSHAN PRAKASH DOLLI", desig: "ASSTT.PROFESSOR", join: "2025-07-01", qual: "M.E.(E&TC)" },
+    { name: "RUPALI ASHOK PATIL", desig: "ASSTT.PROFESSOR", join: "2025-07-01", qual: "M.E.(E&TC)" },
+    { name: "ASHOK DNYANDEO VIDHATE", desig: "ASSTT.PROFESSOR", join: "2025-07-03", qual: "M.E.(E&TC)" },
+    { name: "ANJALI ABHIJIT YADAV", desig: "ASSTT.PROFESSOR", join: "2025-07-04", qual: "M.E.(E&TC)" },
+    { name: "TEJASWEENI GIRISH HAMPE", desig: "ASSTT.PROFESSOR", join: "2026-01-13", qual: "M.E.(E&TC)" }
+  ],
+  AIDS: [
+    { name: "SHWETA CHANDRASHEKHAR DHARMADHIKARI", desig: "ASSO.PROFESSOR", join: "2002-08-01", qual: "Ph.D.- Computer Science" },
+    { name: "ANJALI ANIL DESHPANDE", desig: "ASTT. PROFESSOR", join: "2024-08-20", qual: "M.E.(COMPUTER)" },
+    { name: "MRUNAL MAHADEO MULE", desig: "ASTT. PROFESSOR", join: "2024-08-26", qual: "M. TECH (C.S.E)" },
+    { name: "DEEPA BAPOO MANE", desig: "ASTT. PROFESSOR", join: "2025-07-01", qual: "M.E (IT)" },
+    { name: "MANJUSHRI VILAS RAUT", desig: "ASTT. PROFESSOR", join: "2025-07-02", qual: "M.E (IT)" },
+    { name: "TANUJA SAJID MULLA", desig: "ASTT. PROFESSOR", join: "2025-07-02", qual: "M.Tech. (Computer)" },
+    { name: "DIVYA DILIPKUMAR CHECHANI", desig: "ASTT. PROFESSOR", join: "2025-07-03", qual: "M.E.(Computer)" },
+    { name: "BHAGYASHRI SARANG KULKARNI", desig: "ASTT. PROFESSOR", join: "2026-01-12", qual: "M.Tech(Nano Technology)" }
+  ]
 };
 
-const otherFirstNames = {
-  male: [
-    "Abhinav", "Akash", "Aryan", "Deepak", "Gaurav", "Himanshu",
-    "Kunal", "Lokesh", "Mohit", "Neeraj", "Piyush", "Rajat",
-    "Rohit", "Sumit", "Vivek", "Ankit", "Dhruv", "Ishaan",
-    "Arnav", "Kabir", "Reyansh", "Shiva", "Vihaan", "Ayaan",
-    "Shaurya", "Krishna", "Madhav", "Arihant", "Sai", "Karan",
-    "Dev", "Armaan", "Aditya", "Vivaan", "Sahil", "Saarthak",
-    "Arjun", "Vihaan", "Reyansh", "Ayaan", "Shaurya", "Krishna",
-    "Ishaan", "Arnav", "Aaryan", "Atharva", "Vivaan", "Rohan",
-    "Aditya", "Vihaan", "Aryan", "Arnav", "Kabir", "Shaurya",
-    "Ayaan", "Krishna", "Atharva", "Reyansh", "Arjun", "Dev",
-    "Kartik", "Yash", "Raghav", "Shaan", "Veer", "Zayn",
-  ],
-  female: [
-    "Aditi", "Bhavna", "Deepika", "Kavya", "Meera", "Nandini",
-    "Payal", "Rashmi", "Simran", "Tanya", "Urvi", "Zara",
-    "Ananya", "Sanya", "Avni", "Kiara", "Myra", "Zoya",
-    "Aria", "Diya", "Ira", "Liya", "Navya", "Riya",
-    "Saniya", "Tanishka", "Vani", "Yuvika", "Aisha", "Brianna",
-    "Avni", "Diya", "Ira", "Kiara", "Navya", "Aadhya",
-    "Ananya", "Saanvi", "Myra", "Diya", "Kiara", "Navya",
-    "Priya", "Siya", "Tiya", "Riya", "Ananya", "Aadhya",
-  ],
-};
+// ─── UTILS ───────────────────────────────────────────────────
 
-const maharashtrianMiddleNames = [
-  "Suresh", "Rajesh", "Ramesh", "Anil", "Pramod", "Sanjay",
-  "Dilip", "Milind", "Sandip", "Vijay", "Manoj", "Ravi",
-  "Ashok", "Dinesh", "Sunil", "Mohan", "Deepak", "Satish",
-  "Mahesh", "Shankar", "Vasant", "Tryambak", "Uddhav", "Namdeo",
-  "Pandurang", "Rajabhau", "Sridhar", "Tukaram", "Yashwant", "Narayan",
-  "Pundlik", "Raghunath", "Shridhar", "Tryambak", "Vishwanath", "Mahadev",
-  // Additional
-  "Bhikaji", "Daher", "EKNATH", " Gulab", "Haribhau", "Jaywant",
-  "Keshav", "Laxman", "Moreshwar", "Nanaso", "Padmanab", "Ramkrishna",
-  "Sambhaji", "Tatyaba", "Udbats", "Vikas", "Waman", "Yashrao",
-];
-
-const maharashtrianSurnames = [
-  "Patil", "Deshmukh", "Kulkarni", "Joshi", "More", "Pawar",
-  "Shinde", "Jadhav", "Chavan", "Gaikwad", "Bhosale", "Deshpande",
-  "Kale", "Kamble", "Salunkhe", "Sonawane", "Wagh", "Mane",
-  "Gokhale", "Phadke", "Kelkar", "Tambe", "Naik", "Bhat",
-  "Thakur", "Rane", "Ghate", "Sawant", "Dange", "Khare",
-  "Borase", "Chitte", "Dahake", "Gade", "Hatwalne", "Jadhao",
-  "Khandare", "Lambe", "Mote", "Nangre", "Pagare", "Rajput",
-  "Sarje", "Tayade", "Ugalmane", "Vakade", "Wakade", "Yelne",
-  // More
-  "Ade", "Bandal", "Chougule", "Dapke", "Garje", "Holkar",
-  "Jadhav", "Kadam", "Lokhande", "Munde", "Nalawade", "Pandit",
-  "Rasal", "Sangawar", "Tikekar", "Usalpuri", "Vasane", "Waje",
-  "Yerne", "Zende", "Andure", "Bhor", "Chandane", "Dhonde",
-  // Additional
-  "Gade", "Hake", "Jamdade", "Kote", "Mali", "Nawghare",
-  "Ore", "Pokale", "Rasam", "Salunke", "Totre", "Umarkar",
-];
-
-const otherSurnames = [
-  "Sharma", "Gupta", "Singh", "Kumar", "Verma", "Agarwal",
-  "Mishra", "Pandey", "Jain", "Mehta", "Reddy", "Patel",
-  "Rao", "Nair", "Iyer", "Menon", "Bose", "Das",
-  "Chowdhury", "Banerjee", "Kapoor", "Khanna", "Malhotra", "Sinha",
-  "Trivedi", "Desai", "Shah", "Bhatt", "Joshi", "Shukla",
-  // More
-  "Chandra", "Dutt", "Iyengar", "Joshi", "Kulkarni", "Lakshmi",
-  "Mahajan", "Natarajan", "OP", "Pillai", "Raghavan", "Sundaram",
-  "Venkatesh", "Wadhwa", "Xavier", "Yadav", "Zaheer", "Abraham",
-  // Additional
-  "Bajaj", "Chakraborty", "Dubey", "Gandhi", "Hegde", "Ishida",
-  "Jha", "Karnik", "Luthra", "Murti", "Oberoi", "Parikh",
-  "Quer", "Raman", "Saraf", "Talwar", "Vora", "Wadiyar",
-];
-
-// ─── Utility Functions ───────────────────────────────────────
+function slugifyName(name: string) {
+  return name.toLowerCase().replace(/[^\w\s.]/g, "").replace(/\s+/g, ".").trim();
+}
 
 function pick<T>(arr: T[]): T {
+  if (arr.length === 0) throw new Error("Pick from empty array");
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-function randInt(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-function randFloat(min: number, max: number): number {
-  return parseFloat((Math.random() * (max - min) + min).toFixed(1));
-}
-
-/**
- * Generates a realistic Indian student name.
- * ~50% will be Maharashtrian with optional middle names.
- * Format varies: "First Surname", "First Middle Surname"
- */
-function generateStudentName(): { name: string; gender: "male" | "female" } {
-  const isMaharashtrian = Math.random() < 0.55;
-  const gender: "male" | "female" = Math.random() < 0.55 ? "male" : "female";
-
-  let firstName: string;
-  let surname: string;
-  let middleName: string | null = null;
-
-  if (isMaharashtrian) {
-    firstName = pick(maharashtrianFirstNames[gender]);
-    surname = pick(maharashtrianSurnames);
-    // ~60% of Maharashtrian students have a middle name (father's first name)
-    if (Math.random() < 0.6) {
-      middleName = pick(maharashtrianMiddleNames);
-    }
-  } else {
-    firstName = pick(otherFirstNames[gender]);
-    surname = pick(otherSurnames);
-  }
-
-  const name = middleName
-    ? `${firstName} ${middleName} ${surname}`
-    : `${firstName} ${surname}`;
-
-  return { name, gender };
-}
-
-function generateEmail(name: string, index: number): string {
-  const cleanName = name
-    .toLowerCase()
-    .replace(/\s+/g, ".")
-    .replace(/[^a-z.]/g, "");
-  return `${cleanName}${index}@spa-ews.edu.in`;
-}
-
-// ─── Course Definitions ──────────────────────────────────────
-// FY BTech - Semester 1 (completed/historical) & Semester 2 (ongoing)
-// Common for all depts - FY courses
-const FY_SEM1_COURSES = [
-  { code: "F-001", name: "Linear Algebra and Calculus", credits: 4 },
-  { code: "F-003", name: "Quantum Physics", credits: 2 },
-  { code: "F-004", name: "Quantum Physics Lab", credits: 1 },
-  { code: "F-007", name: "Mechanics for Robotics", credits: 2 },
-  { code: "F-008", name: "Mechanics Lab", credits: 1 },
-  { code: "F-009", name: "Integrated EE Engineering", credits: 2 },
-  { code: "F-010", name: "Integrated EE Lab", credits: 1 },
-  { code: "F-013", name: "C Programming", credits: 2 },
-  { code: "F-014", name: "C Programming Lab", credits: 1 },
-  { code: "F-017", name: "FAB Lab", credits: 1 },
-];
-
-const FY_SEM2_COURSES = [
-  { code: "F-002", name: "Statistics and Calculus", credits: 4 },
-  { code: "F-005", name: "Chemical Science", credits: 2 },
-  { code: "F-006", name: "Chemical Lab", credits: 1 },
-  { code: "F-011", name: "Computer Graphics", credits: 2 },
-  { code: "F-012", name: "CG Lab", credits: 1 },
-  { code: "F-015", name: "OOP with C++", credits: 2 },
-  { code: "F-016", name: "OOP Lab", credits: 1 },
-  { code: "F-018", name: "Design Thinking Lab", credits: 1 },
-  { code: "F-019", name: "Sustainable Engineering", credits: 2 },
-  { code: "F-021", name: "Soft Skills", credits: 2 },
-];
-
-// SY - Semester 3 (completed/historical) & Semester 4 (ongoing)
-const SY_SEM3_COURSES = [
-  { code: "1303101", name: "Data Structures", credits: 3 },
-  { code: "1303102", name: "Computer Organization", credits: 3 },
-  { code: "1303103", name: "Discrete Mathematics", credits: 3 },
-  { code: "1303204", name: "Data Structures Lab", credits: 2 },
-  { code: "1303205", name: "COA Lab", credits: 1 },
-];
-
-// ─── CONFIGURATION ─────────────────────────────────────
-// SET VALUES TO CHANGE STUDENT COUNTS:
-// FY: FY_PER_DIV * DIVISIONS * NUM_FY_DEPARTMENTS
-// SY: SY_PER_DIV * DIVISIONS (CE only)
-// 
-// ═══════════════════════════════════════════════════════════════════
-// STUDENT COUNT CONFIGURATION:
-// ============================================
-// FY (Sem 1): First Year - ALL departments
-//   CE: 240 (60 * 4 divisions A-D)
-//   ENTC: 240 (60 * 4 divisions A-D)
-//   IT: 180 (60 * 3 divisions A-C)
-//   AIDS: 60 (60 * 1 division A)
-//   Total FY: 720
-//
-// SY (Sem 3): Second Year - CE department only
-//   CE: 240 (60 * 4 divisions A-D)
-//   Total SY: 240
-// ============================================
-// CHANGE THESE VALUES FOR FULL DATA:
-// Student counts - FULL DATA
-const FY_PER_DIV = 60;
-const SY_PER_DIV = 60;
-
-// Department-wise divisions
-const DEPT_DIVISIONS = {
-  CE: 4,
-  ENTC: 4,
-  IT: 3,
-  AIDS: 1,
-  ECE: 1
-};
-
-// SY SEM 3 COURSES BY DEPARTMENT
-const SY_COURSES = {
-  CE: [  // Computer Engineering
-    { code: "1303101", name: "Data Structures", credits: 3 },
-    { code: "1303102", name: "Computer Organization", credits: 3 },
-    { code: "1303103", name: "Discrete Mathematics", credits: 3 },
-    { code: "1303204", name: "Data Structures Lab", credits: 2 },
-    { code: "1303205", name: "COA Lab", credits: 1 },
-  ],
-  IT: [  // Information Technology
-    { code: "3303101", name: "Data Structures & Applications", credits: 3 },
-    { code: "3303102", name: "Computer Network Technology", credits: 3 },
-    { code: "3303203", name: "DSAL", credits: 2 },
-    { code: "3303204", name: "CNTL", credits: 2 },
-  ],
-  ENTC: [  // Electronics & Telecommunication
-    { code: "2303101", name: "Signals and Systems", credits: 4 },
-    { code: "2303102", name: "Analog Circuit Design", credits: 3 },
-    { code: "2303203", name: "ACDL", credits: 1 },
-    { code: "2303104", name: "Network Analysis", credits: 3 },
-  ],
-  AIDS: [  // AI & Data Science
-    { code: "4303101", name: "Discrete Mathematics", credits: 2 },
-    { code: "4303102", name: "Data Structures", credits: 3 },
-    { code: "4303103", name: "Artificial Intelligence", credits: 3 },
-    { code: "4303204", name: "DSL", credits: 1 },
-    { code: "4303205", name: "AIDSL", credits: 2 },
-  ],
-  ECE: [  // Electronics & Computer Engineering
-    { code: "5303101", name: "Analog and Digital Electronics", credits: 3 },
-    { code: "5303202", name: "ADEL", credits: 1 },
-    { code: "5303103", name: "Operating System", credits: 3 },
-    { code: "5303104", name: "Principles of Data Structure", credits: 3 },
-    { code: "5303205", name: "PDSL", credits: 1 },
-  ],
-};
-
-// FY SEM 2 COURSES (Common for all)
-const FY_SEM2_COURSES = [
-  { code: "F-002", name: "Statistics and Calculus", credits: 4 },
-  { code: "F-005", name: "Chemical Science", credits: 2 },
-  { code: "F-006", name: "Chemical Lab", credits: 1 },
-  { code: "F-011", name: "Computer Graphics", credits: 2 },
-  { code: "F-012", name: "CG Lab", credits: 1 },
-  { code: "F-015", name: "OOP with C++", credits: 2 },
-  { code: "F-016", name: "OOP Lab", credits: 1 },
-  { code: "F-018", name: "Design Thinking Lab", credits: 1 },
-  { code: "F-019", name: "Sustainable Engineering", credits: 2 },
-  { code: "F-021", name: "Soft Skills", credits: 2 },
-];
-
-// SY SEM 4 COURSES BY DEPARTMENT
-const SY_SEM4_COURSES = {
-  CE: [  // Computer Engineering
-    { code: "1403106", name: "Software Engineering", credits: 2 },
-    { code: "1403107", name: "Database Management Systems", credits: 3 },
-    { code: "1403108", name: "Operating Systems", credits: 2 },
-    { code: "1403209", name: "OS Lab", credits: 1 },
-    { code: "1403210", name: "DBMS Lab", credits: 2 },
-  ],
-  IT: [
-    { code: "3403105", name: "Advanced DSA", credits: 2 },
-    { code: "3403106", name: "Database Systems", credits: 2 },
-    { code: "3403107", name: "Discrete Math", credits: 3 },
-    { code: "3403208", name: "ADSAL", credits: 2 },
-    { code: "3403209", name: "DISL", credits: 2 },
-  ],
-  ENTC: [
-    { code: "2403105", name: "Communication Engineering", credits: 3 },
-    { code: "2403206", name: "PCEL", credits: 1 },
-    { code: "2403107", name: "Digital Circuit Design", credits: 3 },
-    { code: "2403208", name: "DCDL", credits: 1 },
-    { code: "2403109", name: "Control Systems", credits: 3 },
-  ],
-  AIDS: [
-    { code: "4403106", name: "Machine Learning", credits: 3 },
-    { code: "4403107", name: "DBMS", credits: 2 },
-    { code: "4403108", name: "Operating Systems", credits: 2 },
-    { code: "4403109", name: "Computer Networks", credits: 1 },
-    { code: "4403210", name: "Lab Practice-I", credits: 2 },
-  ],
-  ECE: [
-    { code: "5403106", name: "Analog Communication", credits: 3 },
-    { code: "5403107", name: "Microcontroller", credits: 3 },
-    { code: "5403208", name: "ECEL-I", credits: 1 },
-    { code: "5403109", name: "OOP", credits: 3 },
-    { code: "5403210", name: "OOPL", credits: 1 },
-  ],
-};
-
-// Test values (uncomment below for testing)
-// const FY_PER_DIV = 10;
-// const SY_PER_DIV = 10;
-// const DEPT_DIVISIONS = { CE: 2, ENTC: 2, IT: 2, AIDS: 1 };
-
-// BASE PASSWORD - All users can reset later
 const BASE_PASSWORD = "spaews123";
 
-// Academic Year
-const ACADEMIC_YEAR = "2025-26";
+// ─── CONFIG ──────────────────────────────────────────────────
 
-// ─── Faculty Definitions ─────────────────────────────────────
-// HOD should be first entry (index 0)
-const FACULTY_DEFS = [
-  { name: "Dr. Meera Kulkarni", designation: "Professor & HOD", adminRole: AdminRoleLevel.DEPARTMENT_ADMIN, email: "meera.kulkarni@spa-ews.edu.in" },
-  { name: "Prof. Sanjay Deshmukh", designation: "Associate Professor", adminRole: AdminRoleLevel.NONE, email: "sanjay.deshmukh@spa-ews.edu.in" },
-  { name: "Prof. Anjali Patil", designation: "Assistant Professor", adminRole: AdminRoleLevel.NONE, email: "anjali.patil@spa-ews.edu.in" },
-  { name: "Prof. Ramesh Joshi", designation: "Associate Professor", adminRole: AdminRoleLevel.NONE, email: "ramesh.joshi@spa-ews.edu.in" },
-  { name: "Prof. Sunita Bhosale", designation: "Assistant Professor", adminRole: AdminRoleLevel.NONE, email: "sunita.bhosale@spa-ews.edu.in" },
-  { name: "Prof. Vikram Naik", designation: "Assistant Professor", adminRole: AdminRoleLevel.NONE, email: "vikram.naik@spa-ews.edu.in" },
-  { name: "Prof. Priya Sharma", designation: "Associate Professor", adminRole: AdminRoleLevel.NONE, email: "priya.sharma@spa-ews.edu.in" },
-  { name: "Prof. Ajay Pawar", designation: "Assistant Professor", adminRole: AdminRoleLevel.NONE, email: "ajay.pawar@spa-ews.edu.in" },
-  { name: "Prof. Kavita Deshpande", designation: "Assistant Professor", adminRole: AdminRoleLevel.NONE, email: "kavita.deshpande@spa-ews.edu.in" },
-  { name: "Prof. Nilesh Kale", designation: "Assistant Professor", adminRole: AdminRoleLevel.NONE, email: "nilesh.kale@spa-ews.edu.in" },
-];
+const DEPT_DIVISIONS: Record<string, number> = {
+  CE: 4, ENTC: 4, IT: 3, AIDS: 1, ECE: 1
+};
+const BRANCH_CODES: Record<string, string> = {
+  CE: "ce", ENTC: "et", IT: "it", AIDS: "ad", ECE: "ec"
+};
 
-// ─── Main Seed Function ─────────────────────────────────────
+// ─── MAIN SEED ───────────────────────────────────────────────
 
 async function main() {
-  console.log("🌱 Seeding SPA-EWS database...\n");
+  console.log("🌱 Starting SPA-EWS FULL SEED (178 Faculty members)...");
 
-  // 1. Clean existing data
-  console.log("  🧹 Cleaning existing data...");
-  await prisma.auditLog.deleteMany();
-  await prisma.systemConfig.deleteMany();
-  await prisma.lMSEngagement.deleteMany();
-  await prisma.academicHistory.deleteMany();
-  await prisma.externalAssessment.deleteMany();
-  await prisma.leaveRequest.deleteMany();
-  await prisma.courseEnrollment.deleteMany();
-  await prisma.courseOffering.deleteMany();
-  await prisma.course.deleteMany();
-  await prisma.divisionCoordinator.deleteMany();
-  await prisma.studentProfile.deleteMany();
-  await prisma.facultyProfile.deleteMany();
-  await prisma.user.deleteMany();
-  await prisma.department.deleteMany();
+  // 1. Reset Database
+  const tables = ["User", "Department", "StudentProfile", "FacultyProfile", "Course", "CourseOffering", "CourseEnrollment", "DivisionCoordinator", "AcademicHistory", "ExternalAssessment", "SystemConfig"];
+  for (const t of tables) {
+    await prisma.$executeRawUnsafe(`TRUNCATE TABLE "${t}" RESTART IDENTITY CASCADE;`);
+  }
 
-  // 2. Create Departments
-  console.log("  🏛️  Creating departments...");
-  const fyDept = await prisma.department.create({
-    data: { code: "FY", name: "Basic Sciences and Engineering(F. Y. B. Tech)", isFirstYear: true },
-  });
-  const compDept = await prisma.department.create({
-    data: { code: "CE", name: "Computer Engineering" },
-  });
-  const entcDept = await prisma.department.create({
-    data: { code: "ENTC", name: "Electronics and Telecommunication Engineering" },
-  });
-  const itDept = await prisma.department.create({
-    data: { code: "IT", name: "Information Technology" },
-  });
-  const eceDept = await prisma.department.create({
-    data: { code: "ECE", name: "Electronics and Computer Engineering" },
-  });
-  const aidsDept = await prisma.department.create({
-    data: { code: "AIDS", name: "Artificial Intelligence and Data Science Engineering" },
-  });
-
-  // 3. Create Super Admin
-  console.log("  👑 Creating admin users...");
-  const adminPassword = await bcrypt.hash("admin123", 10);
-  
-  // Super Admin (university level)
-  await prisma.user.create({
-    data: {
-      email: "admin@spa-ews.edu.in",
-      passwordHash: adminPassword,
-      name: "System Administrator",
-      role: Role.ADMIN,
-      departmentId: compDept.id,
-    },
-  });
-
-  // CE Department Admin (HOD acts as dept admin)
-  await prisma.user.create({
-    data: {
-      email: "ce.admin@spa-ews.edu.in",
-      passwordHash: adminPassword,
-      name: "CE Department Admin",
-      role: Role.ADMIN,
-      departmentId: compDept.id,
-    },
-  });
-
-  // ENTC Department Admin
-  await prisma.user.create({
-    data: {
-      email: "entc.admin@spa-ews.edu.in",
-      passwordHash: adminPassword,
-      name: "ENTC Department Admin",
-      role: Role.ADMIN,
-      departmentId: entcDept.id,
-    },
-  });
-
-  // IT Department Admin
-  await prisma.user.create({
-    data: {
-      email: "it.admin@spa-ews.edu.in",
-      passwordHash: adminPassword,
-      name: "IT Department Admin",
-      role: Role.ADMIN,
-      departmentId: itDept.id,
-    },
-  });
-
-  // AIDS Department Admin
-  await prisma.user.create({
-    data: {
-      email: "aids.admin@spa-ews.edu.in",
-      passwordHash: adminPassword,
-      name: "AIDS Department Admin",
-      role: Role.ADMIN,
-      departmentId: aidsDept.id,
-    },
-  });
-
-  // ECE Department Admin
-  await prisma.user.create({
-    data: {
-      email: "ece.admin@spa-ews.edu.in",
-      passwordHash: adminPassword,
-      name: "ECE Department Admin",
-      role: Role.ADMIN,
-      departmentId: eceDept.id,
-    },
-  });
-
-  // 4. Create Faculty
-  console.log("  👨‍🏫 Creating 10 faculty members...");
-  const facultyPassword = await bcrypt.hash("faculty123", 10);
-  const facultyProfiles: { id: string; userId: string; name: string }[] = [];
-
-  for (const def of FACULTY_DEFS) {
-    const user = await prisma.user.create({
-      data: {
-        email: def.email,
-        passwordHash: facultyPassword,
-        name: def.name,
-        role: Role.FACULTY,
-        departmentId: compDept.id,
-        facultyProfile: {
-          create: {
-            designation: def.designation,
-            adminRole: def.adminRole,
-            isCollegeBody: def.name.includes("Pawar"), // One faculty is NSS coordinator
-          },
-        },
-      },
-      include: { facultyProfile: true },
-    });
-    facultyProfiles.push({
-      id: user.facultyProfile!.id,
-      userId: user.id,
-      name: user.name,
+  // 2. Departments
+  const departments: Record<string, any> = {};
+  for (const code of ["FY", "CE", "ENTC", "IT", "AIDS", "ECE"]) {
+    departments[code] = await prisma.department.create({
+      data: { code, name: code === "FY" ? "First Year B.Tech" : `${code} Department`, isFirstYear: code === "FY" }
     });
   }
 
-  // 5. Assign Class Coordinators
-  console.log("  📋 Assigning Class Coordinators...");
-  // Prof. Sanjay Deshmukh -> CC for Sem 3, Div A
-  await prisma.divisionCoordinator.create({
+  // 3. Super Admin
+  const adminPassword = await bcrypt.hash(BASE_PASSWORD, 10);
+  await prisma.user.create({
     data: {
-      facultyId: facultyProfiles[1].id,
-      departmentCode: "CE",
-      semester: 3,
-      division: "A",
-    },
-  });
-  // Prof. Anjali Patil -> CC for Sem 5, Div A
-  await prisma.divisionCoordinator.create({
-    data: {
-      facultyId: facultyProfiles[2].id,
-      departmentCode: "COMP",
-      semester: 5,
-      division: "A",
-    },
+      email: "system.admin@spa-ews.edu.in",
+      passwordHash: adminPassword,
+      name: "Super Administrator",
+      role: Role.SUPER_ADMIN,
+      departmentId: departments.CE.id
+    }
   });
 
-  // 6. Create Courses
-  console.log("  📚 Creating courses...");
-  
-  // Create FY courses (common for all depts)
-  const fyCourseIds: string[] = [];
-  for (const c of FY_SEM1_COURSES) {
-    const course = await prisma.course.create({
-      data: {
-        courseCode: c.code,
-        name: c.name,
-        departmentId: compDept.id, // FY courses linked to CE dept temporarily
-        credits: c.credits,
-      },
-    });
-    fyCourseIds.push(course.id);
-  }
-  
-  // FY course offerings - created once, used for all FY students
-  const fyOfferings: string[] = [];
-  for (let i = 0; i < fyCourseIds.length; i++) {
-    const offering = await prisma.courseOffering.create({
-      data: {
-        courseId: fyCourseIds[i],
-        facultyId: facultyProfiles[i % facultyProfiles.length].id,
-        semester: 1,
-        divisionTarget: "A",
-        lecturesConducted: randInt(30, 45),
-      },
-    });
-    fyOfferings.push(offering.id);
-  }
+  // 4. Faculty Seeding (Full List)
+  const facultyByDept: Record<string, any[]> = { FY: [], CE: [], ENTC: [], IT: [], AIDS: [], ECE: [] };
+  const facultyPassword = await bcrypt.hash(BASE_PASSWORD, 10);
 
-// Create SY courses for all departments
-  console.log("  📚 Creating SY courses for all departments...");
-  
-  const deptMap: Record<string, { id: string }> = {
-    CE: compDept,
-    ENTC: entcDept,
-    IT: itDept,
-    AIDS: aidsDept,
-    ECE: eceDept,
-  };
-  
-  // Store course IDs and offerings for each dept
-  const deptCourses: Record<string, { sem3: string[]; sem4: string[] }> = {};
-  const deptOfferings: Record<string, { sem3: string[]; sem4: string[] }> = {};
-  
-  for (const [deptCode, dept] of Object.entries(deptMap)) {
-    // Create Sem 3 courses
-    const sem3Ids: string[] = [];
-    for (const c of SY_COURSES[deptCode as keyof typeof SY_COURSES] || []) {
-      const course = await prisma.course.create({
-        data: { courseCode: c.code, name: c.name, departmentId: dept.id, credits: c.credits },
-      });
-      sem3Ids.push(course.id);
-    }
-    
-    // Create Sem 4 courses
-    const sem4Ids: string[] = [];
-    for (const c of SY_SEM4_COURSES[deptCode as keyof typeof SY_SEM4_COURSES] || []) {
-      const course = await prisma.course.create({
-        data: { courseCode: c.code, name: c.name, departmentId: dept.id, credits: c.credits },
-      });
-      sem4Ids.push(course.id);
-    }
-    
-    deptCourses[deptCode] = { sem3: sem3Ids, sem4: sem4Ids };
-    
-    // Create offerings for each course
-    const sem3Off: string[] = [];
-    for (let i = 0; i < sem3Ids.length; i++) {
-      const offering = await prisma.courseOffering.create({
-        data: { courseId: sem3Ids[i], facultyId: facultyProfiles[i % facultyProfiles.length].id, semester: 3, divisionTarget: "A", lecturesConducted: randInt(30, 45) },
-      });
-      sem3Off.push(offering.id);
-    }
-    
-    const sem4Off: string[] = [];
-    for (let i = 0; i < sem4Ids.length; i++) {
-      const offering = await prisma.courseOffering.create({
-        data: { courseId: sem4Ids[i], facultyId: facultyProfiles[i % facultyProfiles.length].id, semester: 4, divisionTarget: "A", lecturesConducted: randInt(30, 45) },
-      });
-      sem4Off.push(offering.id);
-    }
-    
-    deptOfferings[deptCode] = { sem3: sem3Off, sem4: sem4Off };
-  }
+  for (const [deptCode, rawList] of Object.entries(FACULTY_DATA)) {
+    const hodCand = rawList.find(f => f.qual.includes("Ph.D")) || rawList[0];
 
-  // 8. Create Students
-  console.log("  🧑‍🎓 Creating students...\n");
-  const studentPassword = await bcrypt.hash("spaews123", 10);
-  const usedNames = new Set<string>();
-  let studentIndex = 0;
-
-  const createStudentBatch = async (
-    semester: number,
-    deptCode: string,
-    division: string,
-    count: number,
-    offerings: string[],
-    mentorPoolStart: number,
-    mentorPoolEnd: number,
-    academicYear: string = "2025-26"    
-  ) => {
-  console.log(`  Creating ${count} students for Sem ${semester} ${deptCode} Div ${division} (${academicYear})...`);
-  for (let i = 0; i < count; i++) {
-    studentIndex++;
-      let nameResult = generateStudentName();
-      // Ensure unique names  
-      while (usedNames.has(nameResult.name)) {
-        nameResult = generateStudentName();
-      }
-      usedNames.add(nameResult.name);
-
-      const email = generateEmail(nameResult.name, studentIndex);
-      // PRN Format: YYDEPTXXX (e.g., 25CE001 for 2025 CE dept roll 001)
-      const yearShort = ACADEMIC_YEAR.substring(2, 4); // "25" from "2025-26"
-      const prn = `${yearShort}${deptCode}${String(studentIndex).padStart(4, "0")}`;
-      const isDSE = semester >= 3 && Math.random() < 0.2;
-
-      // Pick a random mentor from the pool
-      const mentorIdx = randInt(mentorPoolStart, mentorPoolEnd);
+    for (const f of rawList) {
+      const isHod = f === hodCand;
+      const cleanName = f.name.toLowerCase().split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+      const email = `${slugifyName(f.name)}@spa-ews.edu.in`;
 
       const user = await prisma.user.create({
         data: {
           email,
-          passwordHash: studentPassword,
-          name: nameResult.name,
-          role: Role.STUDENT,
-          departmentId: compDept.id,
-          studentProfile: {
+          passwordHash: facultyPassword,
+          name: cleanName,
+          role: Role.FACULTY,
+          departmentId: departments[deptCode].id,
+          facultyProfile: {
             create: {
-              prnNumber: prn,
-              admissionType: isDSE ? AdmissionType.DSE : AdmissionType.REGULAR,
-              coreBranchCode: "CE",
-              currentSemester: semester,
-              division,
-              batchNumber: randInt(1, 3),
-              activeBacklogs: Math.random() < 0.15 ? randInt(1, 3) : 0,
-              isHosteler: Math.random() < 0.3,
-              commuteHours: Math.random() < 0.5 ? randFloat(0.5, 3.0) : null,
-              financialStressFlag: Math.random() < 0.08,
-              mentorId: facultyProfiles[mentorIdx].id,
-            },
-          },
+              designation: f.desig,
+              adminRole: isHod ? AdminRoleLevel.DEPARTMENT_ADMIN : AdminRoleLevel.NONE,
+            }
+          }
         },
-        include: { studentProfile: true },
+        include: { facultyProfile: true }
       });
+      facultyByDept[deptCode].push(user.facultyProfile);
+    }
+  }
 
-      const profile = user.studentProfile!;
+  // 5. Courses
+  const courses: Record<string, any[]> = { FY1: [], FY2: [], SE3: [], SE4: [] };
+  const fySetup = [ {c:"FY101", n:"Linear Algebra", s:1}, {c:"FY102", n:"Physics", s:1}, {c:"FY201", n:"Calculus", s:2}, {c:"FY202", n:"Chemistry", s:2} ];
+  for (const c of fySetup) {
+    const res = await prisma.course.create({ data: { courseCode: c.c, name: c.n, credits: 4, departmentId: departments.FY.id } });
+    courses[c.s === 1 ? "FY1" : "FY2"].push(res);
+  }
 
-      // Enroll in all courses for this semester
-      for (const offeringId of offerings) {
-        const offering = await prisma.courseOffering.findUnique({
-          where: { id: offeringId },
-        });
-        if (!offering) continue;
+  for (const code of ["CE", "ENTC", "IT", "AIDS", "ECE"]) {
+    const s3 = await prisma.course.create({ data: { courseCode: `${code}301`, name: `${code} Engineering I`, credits: 4, departmentId: departments[code].id } });
+    const s4 = await prisma.course.create({ data: { courseCode: `${code}401`, name: `${code} Engineering II`, credits: 4, departmentId: departments[code].id } });
+    courses.SE3.push(s3); courses.SE4.push(s4);
+  }
 
-        // Generate realistic attendance & CIE data
-        // Categories: ~40% safe, ~35% warning, ~25% critical
-        const roll = Math.random();
-        let attendedRatio: number;
-        let cieBase: number;
+  // 6. Offerings
+  const offerings: any[] = [];
+  const allCourses = [...courses.FY1, ...courses.FY2, ...courses.SE3, ...courses.SE4];
+  for (const c of allCourses) {
+    const dCode = c.courseCode.substring(0, 2);
+    const pool = facultyByDept[dCode] || facultyByDept.CE;
+    const off = await prisma.courseOffering.create({
+      data: { courseId: c.id, facultyId: pick(pool).id, semester: parseInt(c.courseCode.match(/\d/)?.[0] || "1"), lecturesConducted: 40 }
+    });
+    offerings.push(off);
+  }
 
-        if (roll < 0.40) {
-          // Safe student
-          attendedRatio = randFloat(0.78, 0.95);
-          cieBase = randFloat(60, 95);
-        } else if (roll < 0.75) {
-          // Warning student
-          attendedRatio = randFloat(0.60, 0.77);
-          cieBase = randFloat(40, 65);
-        } else {
-          // Critical student
-          attendedRatio = randFloat(0.30, 0.59);
-          cieBase = randFloat(15, 45);
+  // 7. Student Seeding (BATCHED for performance)
+  const studentPassword = await bcrypt.hash(BASE_PASSWORD, 10);
+  
+  const seedBatch = async (year: number, currentSem: number, acYear: string) => {
+    let divCounter = 1;
+    const studentBatchData: any[] = [];
+    const profileBatchData: any[] = [];
+    const historyBatchData: any[] = [];
+    const enrollmentBatchData: any[] = [];
+    
+    // Phase 1: Build all data in memory
+    for (const [deptCode, numDivs] of Object.entries(DEPT_DIVISIONS)) {
+      for (let d = 0; d < numDivs; d++) {
+        const divName = `${year === 25 ? 'FE' : 'SE'}-${divCounter++}`;
+        
+        for (let i = 1; i <= 60; i++) {
+          const prn = `f${year}${BRANCH_CODES[deptCode]}${String(i).padStart(3, "0")}`;
+          const deptId = year === 25 ? departments.FY.id : departments[deptCode].id;
+          const mentorId = pick(facultyByDept[deptCode]).id;
+          
+          studentBatchData.push({
+            email: prn,
+            passwordHash: studentPassword,
+            name: `Student ${prn.toUpperCase()}`,
+            role: Role.STUDENT,
+            departmentId: deptId
+          });
+          
+          profileBatchData.push({
+            prnNumber: prn,
+            admissionType: AdmissionType.REGULAR,
+            coreBranchCode: deptCode,
+            currentSemester: currentSem,
+            academicYear: acYear,
+            division: divName,
+            mentorId: mentorId
+          });
+          
+          historyBatchData.push({
+            tenthPercentage: 70 + (i % 25),
+            twelfthPercentage: 65 + (i % 30)
+          });
         }
-
-        const lecturesAttended = Math.round(
-          offering.lecturesConducted * attendedRatio
-        );
-
-        await prisma.courseEnrollment.create({
-          data: {
-            studentId: profile.id,
-            offeringId: offeringId,
-            lecturesAttended,
-            dutyLeavesGranted: Math.random() < 0.2 ? randInt(1, 4) : 0,
-            exemptedLectures: Math.random() < 0.1 ? randInt(1, 3) : 0,
-            cieMarks: parseFloat(cieBase.toFixed(1)),
-          },
-        });
-      }
-
-      // Academic History
-      await prisma.academicHistory.create({
-        data: {
-          studentId: profile.id,
-          tenthBoard: pick(["CBSE", "State Board", "ICSE"]),
-          tenthPercentage: randFloat(55, 98),
-          tenthYear: isDSE ? 2021 : 2022,
-          twelfthBoard: isDSE ? null : pick(["CBSE", "State Board", "ICSE"]),
-          twelfthPercentage: isDSE ? null : randFloat(50, 95),
-          twelfthYear: isDSE ? null : 2024,
-          diplomaUniversity: isDSE ? pick(["MSBTE", "VTU"]) : null,
-          diplomaPercentage: isDSE ? randFloat(55, 90) : null,
-          diplomaYear: isDSE ? 2024 : null,
-        },
-      });
-
-      // ~30% of students have AMCAT scores
-      if (Math.random() < 0.30) {
-        await prisma.externalAssessment.create({
-          data: {
-            studentId: profile.id,
-            vendorName: pick(["AMCAT", "CoCubes", "TCS NQT"]),
-            dateTaken: new Date(
-              2026,
-              randInt(0, 2),
-              randInt(1, 28)
-            ),
-            logicalScore: randFloat(300, 900),
-            quantitativeScore: randFloat(250, 900),
-            verbalScore: randFloat(300, 850),
-            domainScore: randFloat(200, 800),
-            overallPercentile: randFloat(20, 99),
-          },
-        });
       }
     }
-};
-  
-  // Create FY students (Sem 1) - First Year
-  // FY students - use dept-wise divisions
-  const divisions = ["A", "B", "C", "D"];
-  const fyOfferingsList = fyOfferings.length > 0 ? fyOfferings : [];
-  
-  // FY students: admitted CURRENT year (2025-26), currently in Sem 1
-  // FY: AY 2025-26, Year in PRN = "25"
-  const fyAcademicYear = "2025-26";
-  
-  // SY students: admitted LAST year (2024-25), currently in Sem 3  
-  // SY: AY 2024-25, Year in PRN = "24"
-  const syAcademicYear = "2024-25";
-  
-  // Create FY students (Sem 1) - all departments with their divisions
-  const allDepts = ["CE", "ENTC", "IT", "AIDS", "ECE"];
-  
-  for (const deptCode of allDepts) {
-    const numDivs = DEPT_DIVISIONS[deptCode as keyof typeof DEPT_DIVISIONS] || 1;
-    for (let d = 0; d < numDivs; d++) {
-      await createStudentBatch(1, deptCode, divisions[d], FY_PER_DIV, fyOfferingsList, 1, FACULTY_DEFS.length - 1, fyAcademicYear);
+
+    // Phase 2: Batch insert users (50 at a time)
+    console.log(`    Creating ${studentBatchData.length} users...`);
+    const createdUsers: any[] = [];
+    for (let i = 0; i < studentBatchData.length; i += 50) {
+      const batch = studentBatchData.slice(i, i + 50);
+      const created = await prisma.user.createMany({ data: batch, skipDuplicates: true });
+      createdUsers.push(...batch);
     }
-  }
+    
+    // Fetch created users to get IDs
+    const emails = studentBatchData.map(s => s.email);
+    const users = await prisma.user.findMany({ where: { email: { in: emails } }, select: { id: true, email: true } });
+    const userMap = new Map(users.map(u => [u.email, u.id]));
 
-  // Create SY students (Sem 3) - all departments
-  for (const deptCode of allDepts) {
-    const numDivs = DEPT_DIVISIONS[deptCode as keyof typeof DEPT_DIVISIONS] || 1;
-    const offerings = deptOfferings[deptCode]?.sem3 || fyOfferingsList;
-    for (let d = 0; d < numDivs; d++) {
-      await createStudentBatch(3, deptCode, divisions[d], SY_PER_DIV, offerings, 1, FACULTY_DEFS.length - 1, syAcademicYear);
+    // Phase 3: Batch insert studentProfiles (100 at a time)
+    console.log(`    Creating student profiles...`);
+    for (let i = 0; i < profileBatchData.length; i += 100) {
+      const profiles = profileBatchData.slice(i, i + 100).map((p, idx) => ({
+        ...p,
+        userId: userMap.get(profileBatchData[i + idx].prnNumber) || ""
+      })).filter(p => p.userId);
+      await prisma.studentProfile.createMany({ data: profiles, skipDuplicates: true });
     }
-  }
+
+    // Fetch student profiles to get IDs
+    const allProfiles = await prisma.studentProfile.findMany({
+      where: { prnNumber: { in: profileBatchData.map(p => p.prnNumber) } },
+      select: { id: true, prnNumber: true }
+    });
+    const profileMap = new Map(allProfiles.map(p => [p.prnNumber, p.id]));
+
+    // Phase 4: Batch insert academicHistory
+    console.log(`    Creating academic history...`);
+    for (let i = 0; i < historyBatchData.length; i += 100) {
+      const history = historyBatchData.slice(i, i + 100).map((h, idx) => ({
+        ...h,
+        studentId: profileMap.get(profileBatchData[i + idx].prnNumber) || ""
+      })).filter(h => h.studentId);
+      await prisma.academicHistory.createMany({ data: history, skipDuplicates: true });
+    }
+
+    // Phase 5: Batch insert course enrollments
+    console.log(`    Creating course enrollments...`);
+    const relevantOfferings = offerings.filter(o => o.semester <= currentSem);
+    for (const [deptCode] of Object.entries(DEPT_DIVISIONS)) {
+      const deptProfiles = allProfiles.filter(p => p.prnNumber.startsWith(BRANCH_CODES[deptCode]));
+      for (const profile of deptProfiles) {
+        for (const off of relevantOfferings) {
+          const isPast = off.semester < currentSem;
+          const randIdx = Math.floor(Math.random() * 60) + 1;
+          enrollmentBatchData.push({
+            studentId: profile.id,
+            offeringId: off.id,
+            lecturesAttended: isPast ? 35 + (randIdx % 6) : 10 + (randIdx % 15),
+            cieMarks: isPast ? 75 + (randIdx % 20) : 15 + (randIdx % 20)
+          });
+        }
+      }
+    }
+    
+    // Insert enrollments in batches
+    for (let i = 0; i < enrollmentBatchData.length; i += 100) {
+      await prisma.courseEnrollment.createMany({ data: enrollmentBatchData.slice(i, i + 100), skipDuplicates: true });
+    }
+    
+    console.log(`    ✅ Batch complete: ${profileBatchData.length} students`);
+  };
+
+  console.log("  🧑‍🎓 Creating FE batch (Sem 2)...");
+  await seedBatch(25, 2, "2025-26");
   
-  // Also create Sem 2 and Sem 4 data (currently ongoing even semester)
-  // For ML analysis - historical data completed
-  console.log("  📊 Creating Sem 2 (completed) data for FY students...");
-  for (const deptCode of allDepts) {
-    const numDivs = DEPT_DIVISIONS[deptCode as keyof typeof DEPT_DIVISIONS] || 1;
-    const offerings = fyOfferingsList; // Use FY sem1 courses as sem2 courses for simplicity
-    for (let d = 0; d < numDivs; d++) {
-      await createStudentBatch(2, deptCode, divisions[d], FY_PER_DIV, offerings, 1, FACULTY_DEFS.length - 1, fyAcademicYear);
-    }
-  }
-  
-  console.log("  📊 Creating Sem 4 (completed) data for SY students...");
-  for (const deptCode of allDepts) {
-    const numDivs = DEPT_DIVISIONS[deptCode as keyof typeof DEPT_DIVISIONS] || 1;
-    const offerings = deptOfferings[deptCode]?.sem4 || fyOfferingsList;
-    for (let d = 0; d < numDivs; d++) {
-      await createStudentBatch(4, deptCode, divisions[d], SY_PER_DIV, offerings, 1, FACULTY_DEFS.length - 1, syAcademicYear);
-    }
-  }
+  console.log("  🧑‍🎓 Creating SE batch (Sem 4)...");
+  await seedBatch(24, 4, "2024-25");
 
-  // 9. Print Credentials Summary
-  console.log("\n  ┌─────────────────────────────────────────────────────────────────────────────┐");
-  console.log("  │                    LOGIN CREDENTIALS                                     │");
-  console.log("  ├─────────────────────────────────────────────────────────────────────────────┤");
-  console.log("  │ SUPER ADMIN:                                                              │");
-  console.log("  │   Email: admin@spa-ews.edu.in                                           │");
-  console.log("  │   Password: admin123                                                    │");
-  console.log("  ├─────────────────────────────────────────────────────────────────────────────┤");
-  console.log("  │ DEPARTMENT ADMINS:                                                    │");
-  console.log("  │   CE Admin:   ce.admin@spa-ews.edu.in    / admin123                     │");
-  console.log("  │   ENTC Admin: entc.admin@spa-ews.edu.in  / admin123                     │");
-  console.log("  │   IT Admin:   it.admin@spa-ews.edu.in    / admin123                     │");
-  console.log("  ├─────────────────────────────────────────────────────────────────────────────┤");
-  console.log("  │ FACULTY (sample):                                                       │");
-  console.log("  │   meera.kulkarni@spa-ews.edu.in / faculty123                            │");
-  console.log("  │   sanjay.deshmukh@spa-ews.edu.in / faculty123                           │");
-  console.log("  ├─────────────────────────────────────────────────────────────────────────────┤");
-  console.log("  │ STUDENTS (base password for all students): student123                      │");
-  console.log("  │ Sample emails: student1@spa-ews.edu.in to student40@spa-ews.edu.in   │");
-  console.log("  └─────────────────────────────────────────────────────────────────────────────┘\n");
+  // 8. Config Defaults
+  await prisma.systemConfig.createMany({
+    data: [{ key: "attendance_threshold", value: "75" }, { key: "marks_threshold", value: "60" }]
+  });
 
-  // 10. System Configuration Defaults
-  console.log("  ⚙️  Creating system config defaults...");
-  const configDefaults = [
-    { key: "attendance_threshold", value: "75" },
-    { key: "marks_threshold", value: "60" },
-    { key: "ai_insights_for_base_faculty", value: "false" },
-    { key: "students_see_ai_insights", value: "false" },
-    { key: "dl_submission_open", value: "true" },
-    { key: "cie_visible_before_announcement", value: "false" },
-    { key: "maintenance_mode", value: "false" },
-  ];
-  for (const cfg of configDefaults) {
-    await prisma.systemConfig.create({ data: cfg });
-  }
-
-  // 10. Summary
-  const userCount = await prisma.user.count();
-  const studentCount = await prisma.studentProfile.count();
-  const facultyCount = await prisma.facultyProfile.count();
-  const courseCount = await prisma.course.count();
-  const enrollmentCount = await prisma.courseEnrollment.count();
-  const amcatCount = await prisma.externalAssessment.count();
-  const configCount = await prisma.systemConfig.count();
-
-  console.log("  ✅ Seeding complete!\n");
-  console.log("  ┌─────────────────────────────────┐");
-  console.log(`  │ Users:          ${String(userCount).padStart(15)} │`);
-  console.log(`  │ Students:       ${String(studentCount).padStart(15)} │`);
-  console.log(`  │ Faculty:        ${String(facultyCount).padStart(15)} │`);
-  console.log(`  │ Courses:        ${String(courseCount).padStart(15)} │`);
-  console.log(`  │ Enrollments:    ${String(enrollmentCount).padStart(15)} │`);
-  console.log(`  │ AMCAT Reports:  ${String(amcatCount).padStart(15)} │`);
-  console.log(`  │ Config Entries: ${String(configCount).padStart(15)} │`);
-  console.log("  └─────────────────────────────────┘\n");
+  console.log("✅ FULL SEED COMPLETE!");
 }
 
-main()
-  .catch((e) => {
-    console.error("❌ Seed failed:", e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-    await pool.end();
-  });
+main().catch(e => { console.error(e); process.exit(1); }).finally(async () => { await prisma.$disconnect(); await pool.end(); });
