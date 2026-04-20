@@ -172,6 +172,14 @@ export function StudentDashboard() {
                     </span>
                   </>
                 )}
+                {student.classTeacher && (
+                  <>
+                    <span>•</span>
+                    <span className="inline-flex items-center gap-1 font-medium text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-900/30">
+                      Class Teacher: {student.classTeacher.name}
+                    </span>
+                  </>
+                )}
               </p>
             </div>
           </div>

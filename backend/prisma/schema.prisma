@@ -79,7 +79,8 @@ model StudentProfile {
   admissionType AdmissionType
 
   coreBranchCode  String
-  currentSemester Int
+  currentSemester Int         // 1-8 (Sem 1 to Sem 8)
+  academicYear  String      // "2025-26" format
   division        String
   batchNumber     Int?
 
@@ -136,7 +137,7 @@ model DivisionCoordinator {
 
 model Course {
   id           String     @id @default(uuid())
-  courseCode   String     @unique
+  courseCode   String
   name         String
   departmentId String
   department   Department @relation(fields: [departmentId], references: [id])
@@ -145,6 +146,8 @@ model Course {
   isElective Boolean @default(false)
 
   offerings CourseOffering[]
+  
+  @@unique([departmentId, courseCode])
 }
 
 model CourseOffering {
@@ -178,7 +181,22 @@ model CourseEnrollment {
 
   cieMarks Float?
 
+  cieAssessments CIEAssessment[]
   @@unique([studentId, offeringId])
+}
+
+// Separate CIE test marks (CIE1, CIE2, CIE3)
+model CIEAssessment {
+  id            String           @id @default(uuid())
+  enrollmentId  String
+  enrollment    CourseEnrollment @relation(fields: [enrollmentId], references: [id])
+
+  cieNumber     Int              // 1, 2, or 3
+  maxMarks      Float            @default(50)
+  marksObtained Float?
+  dateConducted DateTime         @default(now())
+
+  @@unique([enrollmentId, cieNumber])
 }
 
 // ─── Leave & DL Approval Workflow ────────────────────────────

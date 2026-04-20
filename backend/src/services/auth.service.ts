@@ -21,7 +21,7 @@ export async function loginUser({ email, password, role }: LoginInput) {
     include: {
       department: true,
       studentProfile: true,
-      facultyProfile: true,
+      facultyProfile: { select: { adminRole: true } },
     },
   });
 
@@ -47,12 +47,21 @@ export async function loginUser({ email, password, role }: LoginInput) {
     throw Object.assign(new Error("Invalid email or password"), { statusCode: 401 });
   }
 
+  // 4. Include adminRole if user is admin
+  let adminRole: string | undefined;
+  if (user.role === "ADMIN" || user.role === "SUPER_ADMIN") {
+    if (user.facultyProfile) {
+      adminRole = user.facultyProfile.adminRole || undefined;
+    }
+  }
+
   // 4. Sign JWT
   const token = jwt.sign(
     {
       userId: user.id,
       role: user.role,
       departmentId: user.departmentId,
+      adminRole,
     },
     JWT_SECRET,
     { expiresIn: TOKEN_EXPIRY }

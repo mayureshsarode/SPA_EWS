@@ -79,8 +79,9 @@ export async function getDepartments() {
 
 /**
  * Returns all users with search and role filter.
+ * Dept admins only see their department users.
  */
-export async function getUsers(search?: string, role?: string) {
+export async function getUsers(search?: string, role?: string, requestingUserId?: string) {
   const where: any = {};
 
   if (role && role !== "all") {
@@ -92,6 +93,19 @@ export async function getUsers(search?: string, role?: string) {
       { name: { contains: search, mode: "insensitive" } },
       { email: { contains: search, mode: "insensitive" } },
     ];
+  }
+
+  // Check if requesting user is dept admin - filter by department
+  if (requestingUserId) {
+    const requestingUser = await prisma.user.findUnique({
+      where: { id: requestingUserId },
+      include: { facultyProfile: { select: { adminRole: true } } },
+    });
+    
+    // If not SUPER_ADMIN, filter by department
+    if (requestingUser && requestingUser.role !== "SUPER_ADMIN" && requestingUser.facultyProfile?.adminRole !== "SUPER_ADMIN") {
+      where.departmentId = requestingUser.departmentId;
+    }
   }
 
   const users = await prisma.user.findMany({
@@ -120,9 +134,26 @@ export async function getUsers(search?: string, role?: string) {
 
 /**
  * Returns all courses with offering details.
+ * Dept admins only see their department courses.
  */
-export async function getCourses() {
+export async function getCourses(requestingUserId?: string) {
+  const where: any = {};
+
+  // Check if requesting user is dept admin - filter by department
+  if (requestingUserId) {
+    const requestingUser = await prisma.user.findUnique({
+      where: { id: requestingUserId },
+      include: { facultyProfile: { select: { adminRole: true } } },
+    });
+    
+    // If not SUPER_ADMIN, filter by department
+    if (requestingUser && requestingUser.role !== "SUPER_ADMIN" && requestingUser.facultyProfile?.adminRole !== "SUPER_ADMIN") {
+      where.departmentId = requestingUser.departmentId;
+    }
+  }
+
   const courses = await prisma.course.findMany({
+    where,
     include: {
       department: true,
       offerings: {
@@ -170,6 +201,7 @@ export async function createUser(data: {
   currentSemester?: number;
   division?: string;
   admissionType?: string;
+  academicYear?: string;
   // Faculty-specific
   designation?: string;
 }, createdByUserId: string) {
@@ -195,6 +227,7 @@ export async function createUser(data: {
             prnNumber: data.prnNumber,
             admissionType: (data.admissionType?.toUpperCase() || "REGULAR") as any,
             coreBranchCode: "CE",
+            academicYear: data.academicYear || "2024-25",
             currentSemester: data.currentSemester || 3,
             division: data.division || "A",
           },

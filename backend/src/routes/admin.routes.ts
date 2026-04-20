@@ -38,7 +38,7 @@ router.get("/courses", asyncHandler(courses));
 router.get("/leadership", asyncHandler(leadership));
 router.get("/audit-log", asyncHandler(auditLog));
 router.get("/thresholds", asyncHandler(getThresholdsHandler));
-router.get("/alerts", asyncHandler(alertsHandler));
+// NOTE: /alerts removed - alerts only for faculty via /faculty/alerts
 
 // Export operations
 router.get("/export/users", asyncHandler(exportUsersHandler));

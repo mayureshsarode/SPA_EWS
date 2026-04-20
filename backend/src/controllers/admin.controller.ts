@@ -45,12 +45,12 @@ export async function updateDepartmentHandler(req: Request, res: Response) {
 
 export async function users(req: Request, res: Response) {
   const { search, role } = req.query;
-  const data = await getUsers(search as string, role as string);
+  const data = await getUsers(search as string, role as string, req.user!.userId);
   res.json({ success: true, data });
 }
 
-export async function courses(_req: Request, res: Response) {
-  const data = await getCourses();
+export async function courses(req: Request, res: Response) {
+  const data = await getCourses(req.user!.userId);
   res.json({ success: true, data });
 }
 
