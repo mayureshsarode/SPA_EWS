@@ -40,8 +40,9 @@ export function LoginPage() {
       } else {
         navigate("/student");
       }
-    } catch (err: any) {
-      setError(err.message || "Invalid credentials");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Invalid credentials";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -49,14 +50,14 @@ export function LoginPage() {
 
   const handleDemoFill = () => {
     if (role === "admin") {
-      setEmail("admin@spa-ews.edu.in");
-      setPassword("admin123");
+      setEmail("system.admin@spa-ews.edu.in");
+      setPassword("spaews123");
     } else if (role === "faculty") {
-      setEmail("meera.kulkarni@spa-ews.edu.in");
-      setPassword("faculty123");
+      setEmail("sarang.achyut.joshi@spa-ews.edu.in");
+      setPassword("spaews123");
     } else {
-      setEmail("ganesh.khare33@spa-ews.edu.in");
-      setPassword("student123");
+      setEmail("f25ce001@spa-ews.edu.in");
+      setPassword("spaews123");
     }
   };
 
@@ -197,7 +198,7 @@ export function LoginPage() {
                 <button onClick={handleDemoFill} className="text-sm font-semibold text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-lg">
                   Autofill Demo Credentials
                 </button>
-                <p className="mt-4 text-xs text-slate-500 font-medium">Admin: admin@spa-ews.edu.in (admin123) | Faculty: meera.kulkarni@spa-ews.edu.in (faculty123) | Student: ganesh.khare33@spa-ews.edu.in (student123)</p>
+                <p className="mt-4 text-xs text-slate-500 font-medium">Admin: system.admin@spa-ews.edu.in | Faculty: sarang.achyut.joshi@spa-ews.edu.in | Student: f25ce001@spa-ews.edu.in (Pass: spaews123)</p>
               </div>
             </motion.div>
           </AnimatePresence>

@@ -38,15 +38,21 @@ export function AdminDashboard() {
   useEffect(() => {
     Promise.all([
       api('/admin/dashboard'),
-      api('/admin/audit-log?limit=5')
-    ]).then(([dashRes, logRes]) => {
+      api('/admin/audit-log?limit=5'),
+      api('/admin/users?limit=5')
+    ]).then(([dashRes, logRes, userRes]) => {
       setStats(dashRes.data);
       if (logRes.data?.logs) {
         setActivities(logRes.data.logs);
       }
+      if (userRes.data) {
+        setUsersList(userRes.data.slice(0, 5));
+      }
     }).catch(console.error)
       .finally(() => setLoading(false));
   }, []);
+
+  const [usersList, setUsersList] = useState<any[]>([]);
 
   const totalStudents = stats?.totalStudents || 0;
   const totalFaculty = stats?.totalFaculty || 0;
@@ -346,13 +352,9 @@ export function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                  {[
-                    { name: "Prof. Jane Doe", role: "Faculty", dept: "Computer Science", roleColor: "from-blue-500 to-cyan-500" },
-                    { name: "Dr. John Smith", role: "Faculty", dept: "Mathematics", roleColor: "from-blue-500 to-cyan-500" },
-                    { name: "Admin Smith", role: "Admin", dept: "Administration", roleColor: "from-indigo-500 to-violet-500" },
-                  ].map((user, i) => (
+                  {usersList.map((u, i) => (
                     <motion.tr
-                      key={i}
+                      key={u.id}
                       className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -360,18 +362,25 @@ export function AdminDashboard() {
                     >
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-3">
-                          <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${user.roleColor} flex items-center justify-center text-white text-sm font-bold shadow-sm`}>
-                            {user.name.charAt(0)}
+                          <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${u.role === 'STUDENT' ? 'from-emerald-500 to-teal-500' : 'from-blue-500 to-cyan-500'} flex items-center justify-center text-white text-sm font-bold shadow-sm`}>
+                            {u.name.charAt(0)}
                           </div>
-                          <span className="text-sm font-medium text-slate-900 dark:text-white">{user.name}</span>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium text-slate-900 dark:text-white">{u.name}</span>
+                            <span className="text-[10px] text-slate-500 font-mono">{u.email}</span>
+                          </div>
                         </div>
                       </td>
                       <td className="px-4 py-4">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r ${user.roleColor} text-white`}>
-                          {user.role}
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
+                          u.role === 'STUDENT' ? 'bg-blue-100 text-blue-700' : 
+                          u.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' : 
+                          'bg-indigo-100 text-indigo-700'
+                        }`}>
+                          {u.role}
                         </span>
                       </td>
-                      <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">{user.dept}</td>
+                      <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400">{u.departmentCode || u.department}</td>
                       <td className="px-4 py-4">
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />

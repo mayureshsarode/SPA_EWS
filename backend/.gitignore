@@ -18,3 +18,15 @@ src/test-*.js
 src/test-db.ts
 src/scratch-*.js
 src/test-api.mjs
+
+# One-off utilities / data scripts
+check-*.js
+check-*.ts
+fix-*.js
+fix-*.ts
+verify-*.js
+verify-*.ts
+seed_output.txt
+*.sql
+seed-faculty.ts
+seed-students.ts

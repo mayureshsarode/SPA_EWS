@@ -38,7 +38,7 @@ export async function getFacultyDashboard(userId: string) {
     },
   });
 
-  if (!user?.facultyProfile) {
+  if (!user || !user.facultyProfile) {
     throw Object.assign(new Error("Faculty not found"), { statusCode: 404 });
   }
 
@@ -55,8 +55,10 @@ export async function getFacultyDashboard(userId: string) {
     enrolledStudents: o.enrollments.length,
   }));
 
-  // Collect all unique students from all course offerings
+  // Collect all unique students from course offerings and coordinated divisions
   const studentMap = new Map<string, any>();
+  
+  // 1. Students from courses taught
   for (const offering of profile.courseOfferings) {
     for (const enrollment of offering.enrollments) {
       const s = enrollment.student;
@@ -81,6 +83,55 @@ export async function getFacultyDashboard(userId: string) {
       }
     }
   }
+
+  // 2. Students from coordinated divisions
+  for (const role of profile.classCoordinatorFor) {
+    const divStudents = await prisma.studentProfile.findMany({
+      where: {
+        user: { department: { code: role.departmentCode } },
+        currentSemester: role.semester,
+        division: role.division
+      },
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+        courseEnrollments: {
+          include: { offering: true }
+        }
+      }
+    });
+
+    for (const s of divStudents) {
+      if (!studentMap.has(s.id)) {
+        let totalAtt = 0, totalMarks = 0, count = 0;
+        for (const e of s.courseEnrollments) {
+          const conducted = e.offering?.lecturesConducted || 1;
+          totalAtt += (e.lecturesAttended / conducted) * 100;
+          totalMarks += e.cieMarks || 0;
+          count++;
+        }
+        const avgAtt = count > 0 ? Math.round(totalAtt / count) : 0;
+        const avgMarks = count > 0 ? Math.round(totalMarks / count) : 0;
+        
+        let status: "safe" | "warning" | "critical" = "safe";
+        if (avgAtt < 60 || avgMarks < 40) status = "critical";
+        else if (avgAtt < 75 || avgMarks < 60) status = "warning";
+
+        studentMap.set(s.id, {
+          id: s.userId,
+          profileId: s.id,
+          name: s.user.name,
+          email: s.user.email,
+          attendance: avgAtt,
+          internalMarks: avgMarks,
+          status,
+          division: s.division,
+          semester: s.currentSemester,
+          isCoordinated: true
+        });
+      }
+    }
+  }
+
   const students = Array.from(studentMap.values());
 
   // Compute stats
@@ -119,7 +170,7 @@ export async function getFacultyDashboard(userId: string) {
     id: user.id,
     name: user.name,
     email: user.email,
-    department: user.department.name,
+    department: (user as any).department?.name || "Unknown",
     designation: profile.designation,
     adminRole: profile.adminRole,
     isClassCoordinator: profile.classCoordinatorFor.length > 0,
@@ -170,7 +221,7 @@ export async function getStudentProfileForFaculty(studentUserId: string) {
     },
   });
 
-  if (!user?.studentProfile) {
+  if (!user || !user.studentProfile) {
     throw Object.assign(new Error("Student not found"), { statusCode: 404 });
   }
 
@@ -204,7 +255,7 @@ export async function getStudentProfileForFaculty(studentUserId: string) {
     id: user.id,
     name: user.name,
     email: user.email,
-    department: user.department.name,
+    department: (user as any).department?.name || "Unknown",
     semester: profile.currentSemester,
     division: profile.division,
     prnNumber: profile.prnNumber,
@@ -241,7 +292,7 @@ export async function getClassCoordinatorStats(userId: string) {
     },
   });
 
-  if (!user?.facultyProfile) {
+  if (!user || !user.facultyProfile) {
     throw Object.assign(new Error("Faculty profile not found"), { statusCode: 404 });
   }
 

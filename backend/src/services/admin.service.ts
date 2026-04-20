@@ -201,6 +201,7 @@ export async function createUser(data: {
   currentSemester?: number;
   division?: string;
   admissionType?: string;
+  academicYear?: string;
   // Faculty-specific
   designation?: string;
 }, createdByUserId: string) {
@@ -226,6 +227,7 @@ export async function createUser(data: {
             prnNumber: data.prnNumber,
             admissionType: (data.admissionType?.toUpperCase() || "REGULAR") as any,
             coreBranchCode: "CE",
+            academicYear: data.academicYear || "2024-25",
             currentSemester: data.currentSemester || 3,
             division: data.division || "A",
           },

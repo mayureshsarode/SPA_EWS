@@ -37,7 +37,23 @@ export async function getStudentDashboard(userId: string) {
   }
 
   const profile = user.studentProfile;
-  const enrollments = profile.courseEnrollments || [];
+  
+  // Fetch Class Teacher (Division Coordinator)
+  const coordinator = await prisma.divisionCoordinator.findFirst({
+    where: {
+      departmentCode: profile.coreBranchCode,
+      semester: profile.currentSemester,
+      division: profile.division
+    },
+    include: {
+      faculty: { include: { user: { select: { id: true, name: true, email: true } } } }
+    }
+  });
+
+  // Filter enactments to ONLY show the current active semester
+  const enrollments = (profile.courseEnrollments || []).filter(
+    (e) => e.offering?.semester === profile.currentSemester
+  );
 
   // Build per-subject stats
   const subjects = enrollments.map((e) => {
@@ -86,6 +102,9 @@ export async function getStudentDashboard(userId: string) {
     mentor: profile.mentor
       ? { id: profile.mentor.userId, name: profile.mentor.user.name, email: profile.mentor.user.email }
       : null,
+    classTeacher: coordinator
+      ? { id: coordinator.faculty.userId, name: coordinator.faculty.user.name, email: coordinator.faculty.user.email }
+      : null,
     academicHistory: profile.academicHistory,
     externalAssessments: profile.externalAssessments,
   };
@@ -124,7 +143,11 @@ export async function getStudentFaculty(userId: string) {
   }
 
   const facultyMap = new Map<string, any>();
+  const currentSemester = user.studentProfile.currentSemester;
+
   for (const e of user.studentProfile.courseEnrollments) {
+    if (e.offering?.semester !== currentSemester) continue;
+
     const f = e.offering?.faculty;
     if (f && !facultyMap.has(f.id)) {
       facultyMap.set(f.id, {

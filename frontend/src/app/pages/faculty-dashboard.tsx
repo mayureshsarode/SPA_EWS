@@ -30,9 +30,34 @@ import { AnimatedCounter } from "../components/animated-counter";
 import { useAuth } from "../contexts/auth-context";
 import { api } from "../lib/api";
 
+interface Student {
+  id: string;
+  name: string;
+  attendance: number;
+  internalMarks: number;
+  status: "safe" | "warning" | "critical";
+  isCoordinated?: boolean;
+}
+
+interface DashboardData {
+  name: string;
+  department: string;
+  designation: string;
+  isClassCoordinator: boolean;
+  stats: {
+    totalStudents: number;
+    safe: number;
+    warning: number;
+    critical: number;
+    totalMentees: number;
+  };
+  students: Student[];
+  courses: any[];
+}
+
 export function FacultyDashboard() {
   const { user } = useAuth();
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [classFilter, setClassFilter] = useState<string>("all");
@@ -44,19 +69,19 @@ export function FacultyDashboard() {
       .finally(() => setLoading(false));
   }, []);
 
-  const faculty = data || {};
-  const studentsList = faculty.students || [];
-  const stats = faculty.stats || { totalStudents: 0, safe: 0, warning: 0, critical: 0, totalMentees: 0 };
-  const coursesList = faculty.courses || [];
+  const faculty = data;
+  const studentsList = faculty?.students || [];
+  const stats = faculty?.stats || { totalStudents: 0, safe: 0, warning: 0, critical: 0, totalMentees: 0 };
+  const coursesList = faculty?.courses || [];
 
-  const chartData = studentsList.map((s: any) => ({
-    name: s.name.split(" ")[0],
+  const chartData = studentsList.map((s) => ({
+    name: s.name ? s.name.split(" ")[0] : "Student",
     attendance: s.attendance,
     marks: s.internalMarks,
     status: s.status,
   }));
 
-  const filteredStudents = studentsList.filter((student: any) => {
+  const filteredStudents = studentsList.filter((student) => {
     if (statusFilter !== "all" && student.status !== statusFilter) return false;
     // For class filter, we might need a mapping if we have the student's courses. For now just filtering by status.
     return true;
@@ -97,7 +122,7 @@ export function FacultyDashboard() {
           >
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-xl font-bold text-white shadow-lg shadow-indigo-500/25">
-                {faculty?.name?.split(" ").map((n: string) => n[0]).join("") || "JD"}
+                {faculty?.name ? faculty.name.split(" ").map((n: string) => n[0]).join("") : "JD"}
               </div>
               <div>
                 <h1 className="text-xl font-extrabold text-slate-900 dark:text-white">{faculty?.name || "Prof. Jane Doe"}</h1>
@@ -112,7 +137,7 @@ export function FacultyDashboard() {
               <span className="px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 text-sm font-medium border border-indigo-200 dark:border-indigo-800/50 flex items-center gap-1.5">
                 <Users className="w-4 h-4" /> Mentor ({stats.totalMentees} Mentees)
               </span>
-              {faculty.isClassCoordinator && (
+              {faculty?.isClassCoordinator && (
                 <span className="px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-sm font-medium border border-emerald-200 dark:border-emerald-800/50 flex items-center gap-1.5">
                   <Shield className="w-4 h-4" /> Class Coordinator
                 </span>
@@ -257,6 +282,11 @@ export function FacultyDashboard() {
                             {student.name.charAt(0)}
                           </div>
                           <span className="text-sm font-medium text-slate-900 dark:text-white">{student.name}</span>
+                          {student.isCoordinated && (
+                            <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50">
+                              CC
+                            </span>
+                          )}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
