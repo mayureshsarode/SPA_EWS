@@ -4,6 +4,8 @@ import pickle
 import pandas as pd
 import os
 from groq import Groq
+from dotenv import load_dotenv
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)  # Allow your Node.js backend to call this
