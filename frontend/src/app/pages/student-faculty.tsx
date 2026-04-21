@@ -5,19 +5,23 @@ import {
   BookOpen,
   Star,
 } from "lucide-react";
-import { faculties, students } from "../data/mock-data";
+import { api } from "../lib/api";
 import { StudentLayout } from "../components/student-layout";
 import { Link } from "react-router";
+import { useState, useEffect } from "react";
 
 export function StudentFaculty() {
-  const student = students[0]; // Current student
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Get faculty who teach this student's subjects
-  const myFaculty = faculties.filter((f) =>
-    f.courses.some((c) =>
-      student.subjects.some((s) => s.facultyId === f.id)
-    )
-  );
+  useEffect(() => {
+    api('/students/me/faculty')
+      .then(res => setData(res.data))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const myFaculty = data;
 
   return (
     <StudentLayout activeItem="My Faculty">
@@ -27,11 +31,11 @@ export function StudentFaculty() {
           <p className="text-sm text-slate-500 dark:text-slate-400">Faculty members teaching your courses</p>
         </div>
 
+        {loading ? (
+             <div className="flex justify-center p-8"><div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div></div>
+        ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {myFaculty.map((faculty, i) => {
-            const teachingCourses = faculty.courses.filter((c) =>
-              student.subjects.some((s) => s.code === c.courseCode)
-            );
 
             return (
               <motion.div
@@ -55,20 +59,16 @@ export function StudentFaculty() {
                     <div className="text-sm text-indigo-600 dark:text-indigo-400 font-medium">{faculty.department}</div>
                   </div>
 
-                  {/* Courses */}
                   <div className="space-y-2 mb-4">
-                    {teachingCourses.map((course) => (
                       <div
-                        key={course.courseCode}
                         className="flex items-center gap-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50"
                       >
                         <BookOpen className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                         <div className="text-sm">
-                          <span className="font-medium text-slate-900 dark:text-white">{course.courseName}</span>
-                          <span className="text-slate-500 dark:text-slate-400 ml-1">({course.courseCode})</span>
+                          <span className="font-medium text-slate-900 dark:text-white">{faculty.course || "General"}</span>
+                          {faculty.courseCode && <span className="text-slate-500 dark:text-slate-400 ml-1">({faculty.courseCode})</span>}
                         </div>
                       </div>
-                    ))}
                   </div>
 
                   {/* Actions */}
@@ -93,6 +93,7 @@ export function StudentFaculty() {
             );
           })}
         </div>
+        )}
       </div>
     </StudentLayout>
   );

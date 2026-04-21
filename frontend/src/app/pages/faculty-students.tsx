@@ -1,23 +1,32 @@
 import { useState } from "react";
 import { motion } from "motion/react";
+import { Link } from "react-router";
 import { Search, Filter, Mail, User, ShieldAlert, CheckCircle, AlertCircle } from "lucide-react";
+import { api } from "../lib/api";
+import { useEffect } from "react";
 import { FacultyLayout } from "../components/faculty-layout";
-import { students } from "../data/mock-data";
-
-import { useAuth } from "../contexts/auth-context";
 
 export function FacultyStudents() {
-  const { user } = useAuth();
-  const faculty = user as any;
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"course" | "mentees">("course");
 
-  const filteredStudents = students.filter((student: any) => {
-    if (viewMode === "mentees" && student.mentorId !== faculty?.id) return false;
-    // Note: If course mode, we should logically filter by course enrollments. For mock purposes, all others show up.
+  useEffect(() => {
+    api('/faculty/me/dashboard')
+      .then(res => setData(res.data))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const courseStudents = data?.students || [];
+  const mentoredStudents = data?.mentees || [];
+  const activeList = viewMode === "course" ? courseStudents : mentoredStudents;
+
+  const filteredStudents = activeList.filter((student: any) => {
     if (statusFilter !== "all" && student.status !== statusFilter) return false;
-    if (searchQuery && !student.name.toLowerCase().includes(searchQuery.toLowerCase()) && !student.id.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    if (searchQuery && !student.name?.toLowerCase().includes(searchQuery.toLowerCase()) && !student.id?.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
 
@@ -30,6 +39,11 @@ export function FacultyStudents() {
             <p className="text-sm text-slate-500 dark:text-slate-400">View and manage students enrolled in your courses or assigned to your mentorship batch.</p>
           </div>
         </div>
+
+        {loading ? (
+           <div className="flex justify-center p-8"><div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div></div>
+        ) : (
+          <>
 
         {/* View Toggle */}
         <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit">
@@ -151,12 +165,12 @@ export function FacultyStudents() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right whitespace-nowrap">
-                      <button className="p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors" title="Message Student">
+                      <Link to={`/faculty/messages?studentId=${student.id}`} className="inline-block p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors" title="Message Student">
                         <Mail className="w-4 h-4" />
-                      </button>
-                      <button className="p-2 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" title="View Profile">
+                      </Link>
+                      <Link to={`/faculty/student/${student.id}`} className="inline-block p-2 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" title="View Profile">
                         <User className="w-4 h-4" />
-                      </button>
+                      </Link>
                     </td>
                   </tr>
                 ))}
@@ -172,6 +186,8 @@ export function FacultyStudents() {
             )}
           </div>
         </motion.div>
+        </>
+        )}
       </div>
     </FacultyLayout>
   );

@@ -23,5 +23,31 @@ dist-ssr
 *.sln
 *.sw?
 
-# Env
+# Environment
 .env
+.env.local
+.env.*.local
+
+# Test files
+*.test.ts
+*.spec.ts
+
+# Temporary files
+scratch-*.js
+test-*.js
+
+# ML Service
+ml-service/__pycache__/
+ml-service/*.pyc
+ml-service/.env
+
+# Internal Team/Planning Files
+TEAM_SUMMARY.md
+guidelines/
+docs/GIT_COMMIT_PLAN.md
+docs/PHASE_BREAKDOWN.md
+docs/WORK_CLASSIFICATION.md
+
+# Additional Internal Documents
+PROJECT_REPORT.md
+docs/ML_TEAM_GUIDE.md

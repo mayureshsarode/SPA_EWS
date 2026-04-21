@@ -3,50 +3,46 @@ import { useSearchParams } from "react-router";
 import { motion } from "motion/react";
 import { Send, Search, ChevronRight, Clock, MessageSquare, UserCheck } from "lucide-react";
 import { FacultyLayout } from "../components/faculty-layout";
-import { students } from "../data/mock-data";
+import { api } from "../lib/api";
 import { useAuth } from "../contexts/auth-context";
-import { Faculty } from "../data/mock-data";
 
-// Build mentee thread list from students whose mentorId matches logged-in faculty
-const menteeThreads = students
-  .filter((s) => s.mentorId === "F001") // In real app: filter by logged-in faculty id
-  .map((s) => ({
-    id: s.id,
-    studentName: s.name,
-    subject: "Academic Mentorship",
-    lastMessage: s.status === "critical"
-      ? "Your attendance is critically low. Please respond urgently."
-      : s.status === "warning"
-      ? "I noticed your attendance slipping. Let's connect."
-      : "Your performance is on track — keep it up!",
-    time: "Today",
-    unread: s.status !== "safe",
-    status: s.status,
-  }));
-
-const chatHistories: Record<string, { from: "faculty" | "student"; text: string; time: string }[]> = {
-  S001: [
-    { from: "faculty", text: "Hi Emily! Great work this semester, your attendance is outstanding.", time: "Mar 20, 9:00 AM" },
-    { from: "student", text: "Thank you, Professor! I'm really enjoying the DSA course.", time: "Mar 20, 9:15 AM" },
-    { from: "faculty", text: "Keep up the pace. Your CIE 3 scores were excellent.", time: "Mar 21, 10:30 AM" },
-  ],
-  S002: [
-    { from: "faculty", text: "Hi Michael, your attendance in OS has dropped to 76%. Is everything okay?", time: "Mar 22, 2:30 PM" },
-    { from: "student", text: "I was unwell last week, Professor. I'm back now and will make up the classes.", time: "Mar 22, 3:15 PM" },
-    { from: "faculty", text: "Please submit the medical certificate if you have one. I'll account for those days.", time: "Mar 22, 3:20 PM" },
-    { from: "faculty", text: "Also review the CIE 3 notes I shared. Focus on the OS scheduling algorithms.", time: "Today, 10:00 AM" },
-  ],
-};
 
 export function FacultyMessages() {
   const [searchParams] = useSearchParams();
   const defaultStudent = searchParams.get("studentId");
-  const [selectedId, setSelectedId] = useState<string | null>(defaultStudent || (menteeThreads[0]?.id ?? null));
-  const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState(chatHistories);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
-  const faculty = user as Faculty;
+  const faculty = user as any;
+
+  const [menteeThreads, setMenteeThreads] = useState<any[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(defaultStudent);
+  const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState<Record<string, any[]>>({});
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    api('/faculty/me/dashboard')
+      .then(res => {
+        const mentees = res.data?.mentees || [];
+        const threads = mentees.map((s: any) => ({
+          id: s.userId || s.id,
+          studentName: s.name,
+          subject: "Academic Mentorship",
+          lastMessage: s.riskLevel === 'CRITICAL'
+            ? "Your attendance is critically low. Please respond urgently."
+            : s.riskLevel === 'WARNING'
+            ? "I noticed your attendance slipping. Let's connect."
+            : "Your performance is on track — keep it up!",
+          time: "Today",
+          unread: s.riskLevel !== 'SAFE',
+          status: s.riskLevel?.toLowerCase() || 'safe',
+        }));
+        setMenteeThreads(threads);
+        if (!defaultStudent && threads.length > 0) {
+          setSelectedId(threads[0].id);
+        }
+      })
+      .catch(console.error);
+  }, []);
 
   const activeThread = menteeThreads.find((t) => t.id === selectedId);
   const activeMessages = selectedId ? (messages[selectedId] ?? []) : [];

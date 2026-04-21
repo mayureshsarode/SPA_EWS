@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "motion/react";
 import {
   Send,
@@ -6,12 +6,11 @@ import {
   ChevronRight,
   Clock,
 } from "lucide-react";
-import { faculties } from "../data/mock-data";
+import { api } from "../lib/api";
 import { StudentLayout } from "../components/student-layout";
-
 import { useAuth } from "../contexts/auth-context";
 
-const chatMessages = [
+const initialChatMessages = [
   { from: "faculty", text: "Hi John, I noticed your attendance has dropped below 75%. Is everything okay?", time: "Yesterday, 2:30 PM" },
   { from: "student", text: "Thank you for checking in, Professor. I've been unwell last week but I'm recovering now.", time: "Yesterday, 3:15 PM" },
   { from: "faculty", text: "I'm glad to hear you're getting better. Please make sure to attend the upcoming classes to improve your attendance.", time: "Yesterday, 3:20 PM" },
@@ -19,15 +18,37 @@ const chatMessages = [
 ];
 
 export function StudentMessages() {
+  const { user } = useAuth();
   const [selectedChat, setSelectedChat] = useState<number | null>(1);
   const [newMessage, setNewMessage] = useState("");
-  const { user } = useAuth();
-  const student = user as any;
-  const mentor = faculties.find(f => f.id === student?.mentorId);
+  const [messages, setMessages] = useState(initialChatMessages);
+  const [mentorName, setMentorName] = useState("Your Mentor");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const mockMessages = mentor ? [
-    { id: 1, facultyId: mentor.id, facultyName: mentor.name, subject: "Academic Mentorship", lastMessage: "Also, please review the attached notes for the upcoming CIE.", time: "Today, 10:00 AM", unread: true }
-  ] : [];
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  useEffect(() => {
+    api('/students/me/dashboard')
+      .then(res => {
+        const mentor = res.data?.mentor;
+        if (mentor?.name) setMentorName(mentor.name);
+      })
+      .catch(console.error);
+  }, []);
+
+  const handleSend = () => {
+    if (!newMessage.trim() || !selectedChat) return;
+    const now = new Date();
+    const timeStr = `Today, ${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")} ${now.getHours() >= 12 ? "PM" : "AM"}`;
+    setMessages((prev) => [...prev, { from: "student", text: newMessage.trim(), time: timeStr }]);
+    setNewMessage("");
+  };
+
+  const mockMessages = [
+    { id: 1, facultyName: mentorName, subject: "Academic Mentorship", lastMessage: "Also, please review the attached notes for the upcoming CIE.", time: "Today, 10:00 AM", unread: true }
+  ];
 
   const activeChat = mockMessages.find((m) => m.id === selectedChat);
 
@@ -117,7 +138,7 @@ export function StudentMessages() {
 
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                  {chatMessages.map((msg, i) => (
+                  {messages.map((msg, i) => (
                     <motion.div
                       key={i}
                       className={`flex ${msg.from === "student" ? "justify-end" : "justify-start"}`}
@@ -142,6 +163,7 @@ export function StudentMessages() {
                       </div>
                     </motion.div>
                   ))}
+                  <div ref={messagesEndRef} />
                 </div>
 
                 {/* Input */}
@@ -151,10 +173,11 @@ export function StudentMessages() {
                       type="text"
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleSend()}
                       placeholder="Type a message..."
                       className="flex-1 px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
-                    <button className="p-3 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:shadow-lg shadow-indigo-500/20 transition-all">
+                    <button onClick={handleSend} className="p-3 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:shadow-lg shadow-indigo-500/20 transition-all">
                       <Send className="w-5 h-5" />
                     </button>
                   </div>

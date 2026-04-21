@@ -6,54 +6,95 @@ import {
   AlertCircle,
   CheckCircle,
 } from "lucide-react";
-import { faculties, getStudentsByCourse } from "../data/mock-data";
+import { api } from "../lib/api";
 import { FacultyLayout } from "../components/faculty-layout";
+import { useEffect } from "react";
 
 export function FacultyCieMarks() {
-  const faculty = faculties[0];
-  const [selectedCourse, setSelectedCourse] = useState(faculty.courses[0].courseCode);
-  const [selectedDivision, setSelectedDivision] = useState(faculty.courses[0].divisions[0]);
+  const [courses, setCourses] = useState<any[]>([]);
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("");
+  const [divisionStudents, setDivisionStudents] = useState<any[]>([]);
   const [selectedCie, setSelectedCie] = useState<1 | 2 | 3>(1);
   const [marksMap, setMarksMap] = useState<Record<string, number>>({});
   const [saved, setSaved] = useState(false);
+  const [loadingCourses, setLoadingCourses] = useState(true);
+  const [loadingStudents, setLoadingStudents] = useState(false);
 
-  const currentCourse = faculty.courses.find((c) => c.courseCode === selectedCourse);
-  const divisionStudents = getStudentsByCourse(selectedCourse, selectedDivision);
-  const maxMarks = 50;
+  // 1. Fetch faculty courses
+  useEffect(() => {
+    api('/faculty/me/dashboard')
+      .then(res => {
+        const facCourses = res.data.courses || [];
+        setCourses(facCourses);
+        if (facCourses.length > 0) {
+          setSelectedCourseId(facCourses[0].id);
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoadingCourses(false));
+  }, []);
 
-  // Initialize marks from existing data
-  const getExistingMark = (studentId: string) => {
-    const student = divisionStudents.find((s) => s.id === studentId);
-    if (!student) return 0;
-    const subject = student.subjects.find((s) => s.code === selectedCourse);
-    if (!subject) return 0;
-    if (selectedCie === 1) return subject.cie1;
-    if (selectedCie === 2) return subject.cie2;
-    return subject.cie3;
+  // 2. Fetch students and existing marks when course or cie changes
+  useEffect(() => {
+    if (!selectedCourseId) return;
+    setLoadingStudents(true);
+    api(`/marks/${selectedCourseId}/cie/${selectedCie}`)
+      .then(res => {
+        const students = res.data.students || [];
+        setDivisionStudents(students);
+        
+        // Initialize marks map from fetched data
+        const initialMarks: Record<string, number> = {};
+        students.forEach((s: any) => {
+           initialMarks[s.enrollmentId] = s.marks || 0;
+        });
+        setMarksMap(initialMarks);
+      })
+      .catch(console.error)
+      .finally(() => setLoadingStudents(false));
+  }, [selectedCourseId, selectedCie]);
+
+  const currentCourse = courses.find((c) => c.id === selectedCourseId);
+  const maxMarks = 100; // Database uses 100 max cumulative marks for CIE
+
+  const getMark = (enrollmentId: string) => {
+    return marksMap[enrollmentId] || 0;
   };
 
-  const getMark = (studentId: string) => {
-    if (marksMap[studentId] !== undefined) return marksMap[studentId];
-    return getExistingMark(studentId);
-  };
-
-  const setMark = (studentId: string, value: number) => {
-    setMarksMap((prev) => ({ ...prev, [studentId]: Math.min(Math.max(0, value), maxMarks) }));
+  const setMark = (enrollmentId: string, value: number) => {
+    setMarksMap((prev) => ({ ...prev, [enrollmentId]: Math.min(Math.max(0, value), maxMarks) }));
     setSaved(false);
   };
 
-  const isInvalid = (studentId: string) => {
-    const mark = getMark(studentId);
+  const isInvalid = (enrollmentId: string) => {
+    const mark = getMark(enrollmentId);
     return mark > maxMarks || mark < 0;
   };
 
   const avgMarks = divisionStudents.length
-    ? Math.round(divisionStudents.reduce((sum, s) => sum + getMark(s.id), 0) / divisionStudents.length)
+    ? Math.round(divisionStudents.reduce((sum, s) => sum + getMark(s.enrollmentId), 0) / divisionStudents.length)
     : 0;
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const handleSave = async () => {
+    if (!selectedCourseId || divisionStudents.length === 0) return;
+
+    // Build payload
+    const entries = divisionStudents.map(s => ({
+      enrollmentId: s.enrollmentId,
+      marks: marksMap[s.enrollmentId] || 0
+    }));
+
+    try {
+      await api(`/marks/save`, {
+        method: "POST",
+        body: JSON.stringify({ entries })
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to save marks");
+    }
   };
 
   return (
@@ -73,33 +114,23 @@ export function FacultyCieMarks() {
         >
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Course</label>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Course Offering</label>
               <select
-                value={selectedCourse}
-                onChange={(e) => {
-                  setSelectedCourse(e.target.value);
-                  const course = faculty.courses.find((c) => c.courseCode === e.target.value);
-                  if (course) setSelectedDivision(course.divisions[0]);
-                  setMarksMap({});
-                }}
+                value={selectedCourseId}
+                onChange={(e) => setSelectedCourseId(e.target.value)}
+                disabled={loadingCourses}
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
-                {faculty.courses.map((c) => (
-                  <option key={c.courseCode} value={c.courseCode}>{c.courseCode} — {c.courseName}</option>
+                {courses.map((c: any) => (
+                  <option key={c.id} value={c.id}>{c.courseCode} — {c.courseName} (Div {c.division})</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Division</label>
-              <select
-                value={selectedDivision}
-                onChange={(e) => { setSelectedDivision(e.target.value); setMarksMap({}); }}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                {currentCourse?.divisions.map((d) => (
-                  <option key={d} value={d}>Division {d}</option>
-                ))}
-              </select>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Semester</label>
+              <div className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                {currentCourse ? `Semester ${currentCourse.semester}` : "N/A"}
+              </div>
             </div>
             <div>
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">CIE Exam</label>
@@ -166,19 +197,24 @@ export function FacultyCieMarks() {
                   <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase">Percentage</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800 relative">
+                {loadingStudents && (
+                  <div className="absolute inset-0 z-10 bg-white/50 dark:bg-slate-900/50 flex items-center justify-center backdrop-blur-sm">
+                    <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                )}
                 {divisionStudents.map((student, i) => {
-                  const mark = getMark(student.id);
+                  const mark = getMark(student.enrollmentId);
                   const percentage = Math.round((mark / maxMarks) * 100);
                   return (
                     <motion.tr
-                      key={student.id}
+                      key={student.enrollmentId}
                       className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.2, delay: i * 0.03 }}
                     >
-                      <td className="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-400">{student.id}</td>
+                      <td className="px-6 py-4 text-sm font-mono text-slate-600 dark:text-slate-400">{student.studentId}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white text-sm font-bold">
@@ -194,15 +230,15 @@ export function FacultyCieMarks() {
                             min={0}
                             max={maxMarks}
                             value={mark}
-                            onChange={(e) => setMark(student.id, parseInt(e.target.value) || 0)}
+                            onChange={(e) => setMark(student.enrollmentId, parseInt(e.target.value) || 0)}
                             className={`w-20 px-3 py-2 rounded-xl border text-center font-bold text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                              isInvalid(student.id)
+                              isInvalid(student.enrollmentId)
                                 ? "border-rose-300 dark:border-rose-700 bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-400"
                                 : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white"
                             }`}
                           />
                           <span className="text-sm text-slate-500 dark:text-slate-400">/ {maxMarks}</span>
-                          {isInvalid(student.id) && <AlertCircle className="w-4 h-4 text-rose-500" />}
+                          {isInvalid(student.enrollmentId) && <AlertCircle className="w-4 h-4 text-rose-500" />}
                         </div>
                       </td>
                       <td className="px-6 py-4">

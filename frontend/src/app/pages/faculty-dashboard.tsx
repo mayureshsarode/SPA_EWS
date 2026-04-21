@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router";
 import { motion } from "motion/react";
 import {
@@ -25,45 +25,65 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import { AnimatedCounter } from "../components/animated-counter";
 import { FacultyLayout } from "../components/faculty-layout";
+import { AnimatedCounter } from "../components/animated-counter";
 import { useAuth } from "../contexts/auth-context";
+import { api } from "../lib/api";
 
-// Mock data
-const mockStudents = [
-  { id: "S001", name: "Emily Johnson", attendance: 95, internalMarks: 88, status: "safe" },
-  { id: "S002", name: "Michael Chen", attendance: 78, internalMarks: 72, status: "warning" },
-  { id: "S003", name: "Sarah Williams", attendance: 92, internalMarks: 85, status: "safe" },
-  { id: "S004", name: "David Brown", attendance: 65, internalMarks: 58, status: "critical" },
-  { id: "S005", name: "Jessica Martinez", attendance: 88, internalMarks: 90, status: "safe" },
-  { id: "S006", name: "James Anderson", attendance: 70, internalMarks: 65, status: "warning" },
-  { id: "S007", name: "Emma Taylor", attendance: 60, internalMarks: 55, status: "critical" },
-  { id: "S008", name: "Robert Wilson", attendance: 94, internalMarks: 92, status: "safe" },
-  { id: "S009", name: "Olivia Garcia", attendance: 75, internalMarks: 68, status: "warning" },
-  { id: "S010", name: "Daniel Moore", attendance: 90, internalMarks: 87, status: "safe" },
-  { id: "S011", name: "Sophia Lee", attendance: 58, internalMarks: 52, status: "critical" },
-  { id: "S012", name: "Matthew Harris", attendance: 85, internalMarks: 80, status: "safe" },
-];
+interface Student {
+  id: string;
+  name: string;
+  attendance: number;
+  internalMarks: number;
+  status: "safe" | "warning" | "critical";
+  isCoordinated?: boolean;
+}
 
-const chartData = mockStudents.map((s) => ({
-  name: s.name.split(" ")[0],
-  attendance: s.attendance,
-  marks: s.internalMarks,
-  status: s.status,
-}));
+interface DashboardData {
+  name: string;
+  department: string;
+  designation: string;
+  isClassCoordinator: boolean;
+  stats: {
+    totalStudents: number;
+    safe: number;
+    warning: number;
+    critical: number;
+    totalMentees: number;
+  };
+  students: Student[];
+  courses: any[];
+}
 
 export function FacultyDashboard() {
   const { user } = useAuth();
-  const faculty = user as any;
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [classFilter, setClassFilter] = useState<string>("all");
 
-  const safeCount = mockStudents.filter((s) => s.status === "safe").length;
-  const warningCount = mockStudents.filter((s) => s.status === "warning").length;
-  const criticalCount = mockStudents.filter((s) => s.status === "critical").length;
+  useEffect(() => {
+    api('/faculty/me/dashboard')
+      .then(res => setData(res.data))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
 
-  const filteredStudents = mockStudents.filter((student) => {
+  const faculty = data;
+  const studentsList = faculty?.students || [];
+  const stats = faculty?.stats || { totalStudents: 0, safe: 0, warning: 0, critical: 0, totalMentees: 0 };
+  const coursesList = faculty?.courses || [];
+
+  const chartData = studentsList.map((s) => ({
+    name: s.name ? s.name.split(" ")[0] : "Student",
+    attendance: s.attendance,
+    marks: s.internalMarks,
+    status: s.status,
+  }));
+
+  const filteredStudents = studentsList.filter((student) => {
     if (statusFilter !== "all" && student.status !== statusFilter) return false;
+    // For class filter, we might need a mapping if we have the student's courses. For now just filtering by status.
     return true;
   });
 
@@ -80,9 +100,19 @@ export function FacultyDashboard() {
     return "#ef4444";
   };
 
+  if (loading) {
+    return (
+      <FacultyLayout activeItem="Dashboard">
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      </FacultyLayout>
+    );
+  }
+
   return (
     <FacultyLayout activeItem="Dashboard">
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6 px-4 sm:px-6">
           {/* Faculty Roles Overview */}
           <motion.div
             className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row gap-6 items-start md:items-center justify-between"
@@ -92,7 +122,7 @@ export function FacultyDashboard() {
           >
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-xl font-bold text-white shadow-lg shadow-indigo-500/25">
-                {faculty?.name?.split(" ").map((n: string) => n[0]).join("") || "JD"}
+                {faculty?.name ? faculty.name.split(" ").map((n: string) => n[0]).join("") : "JD"}
               </div>
               <div>
                 <h1 className="text-xl font-extrabold text-slate-900 dark:text-white">{faculty?.name || "Prof. Jane Doe"}</h1>
@@ -102,24 +132,26 @@ export function FacultyDashboard() {
             
             <div className="flex flex-wrap gap-3">
               <span className="px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-sm font-medium border border-blue-200 dark:border-blue-800/50 flex items-center gap-1.5">
-                <BookOpen className="w-4 h-4" /> Course Faculty (2 courses)
+                <BookOpen className="w-4 h-4" /> Course Faculty ({coursesList.length} courses)
               </span>
               <span className="px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 text-sm font-medium border border-indigo-200 dark:border-indigo-800/50 flex items-center gap-1.5">
-                <Users className="w-4 h-4" /> Mentor (Batch A)
+                <Users className="w-4 h-4" /> Mentor ({stats.totalMentees} Mentees)
               </span>
-              <span className="px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-sm font-medium border border-emerald-200 dark:border-emerald-800/50 flex items-center gap-1.5">
-                <Shield className="w-4 h-4" /> CC (Sem 3 Div A)
-              </span>
+              {faculty?.isClassCoordinator && (
+                <span className="px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-sm font-medium border border-emerald-200 dark:border-emerald-800/50 flex items-center gap-1.5">
+                  <Shield className="w-4 h-4" /> Class Coordinator
+                </span>
+              )}
             </div>
           </motion.div>
 
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { label: "Total Students", value: mockStudents.length, gradient: "from-indigo-600 to-violet-600", shadow: "shadow-indigo-500/20", icon: Users },
-              { label: "Safe Students", value: safeCount, gradient: "from-emerald-500 to-teal-500", shadow: "shadow-emerald-500/20", icon: Users },
-              { label: "Warning Students", value: warningCount, gradient: "from-amber-500 to-orange-500", shadow: "shadow-amber-500/20", icon: AlertTriangle },
-              { label: "Critical Students", value: criticalCount, gradient: "from-rose-500 to-red-500", shadow: "shadow-rose-500/20", icon: AlertTriangle },
+              { label: "Total Students", value: stats.totalStudents, gradient: "from-indigo-600 to-violet-600", shadow: "shadow-indigo-500/20", icon: Users },
+              { label: "Safe Students", value: stats.safe, gradient: "from-emerald-500 to-teal-500", shadow: "shadow-emerald-500/20", icon: Users },
+              { label: "Warning Students", value: stats.warning, gradient: "from-amber-500 to-orange-500", shadow: "shadow-amber-500/20", icon: AlertTriangle },
+              { label: "Critical Students", value: stats.critical, gradient: "from-rose-500 to-red-500", shadow: "shadow-rose-500/20", icon: AlertTriangle },
             ].map((card, i) => {
               const CardIcon = card.icon;
               return (
@@ -250,6 +282,11 @@ export function FacultyDashboard() {
                             {student.name.charAt(0)}
                           </div>
                           <span className="text-sm font-medium text-slate-900 dark:text-white">{student.name}</span>
+                          {student.isCoordinated && (
+                            <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50">
+                              CC
+                            </span>
+                          )}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -275,10 +312,10 @@ export function FacultyDashboard() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <button className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all duration-200">
+                        <Link to={`/faculty/student/${student.id}`} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all duration-200">
                           <Eye className="w-4 h-4" />
                           View
-                        </button>
+                        </Link>
                       </td>
                     </motion.tr>
                   ))}
@@ -320,10 +357,10 @@ export function FacultyDashboard() {
                       <div className="text-sm font-bold text-slate-900 dark:text-white">{student.internalMarks}/100</div>
                     </div>
                   </div>
-                  <button className="w-full py-2.5 px-3 rounded-xl text-sm font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 hover:bg-indigo-100 dark:hover:bg-indigo-950/50 transition-colors flex items-center justify-center gap-2">
+                  <Link to={`/faculty/student/${student.id}`} className="w-full py-2.5 px-3 rounded-xl text-sm font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 hover:bg-indigo-100 dark:hover:bg-indigo-950/50 transition-colors flex items-center justify-center gap-2">
                     <Eye className="w-4 h-4" />
                     View Details
-                  </button>
+                  </Link>
                 </motion.div>
               ))}
             </div>

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { api } from "../lib/api";
 import { motion, AnimatePresence } from "motion/react";
 import {
   CheckCircle,
@@ -12,76 +13,25 @@ import {
 } from "lucide-react";
 import { AdminLayout } from "../components/admin-layout";
 
-type RequestStatus = "pending" | "approved" | "rejected";
+type RequestStatus = "PENDING" | "APPROVED" | "REJECTED";
 
 interface LeaveRequest {
   id: string;
-  requester: string;
-  requesterType: string;
-  students: string[];
   leaveType: "DL" | "EXEMPTION";
   reason: string;
-  dates: string;
+  proofDocumentUrl?: string;
   status: RequestStatus;
-  submittedAt: string;
-  document?: string;
+  createdAt: string;
+  resolvedAt?: string;
+  requester: { id: string; name: string; email: string };
+  student: { id: string; name: string; email: string };
+  approver?: { id: string; name: string };
 }
 
-const initialRequests: LeaveRequest[] = [
-  {
-    id: "LR001",
-    requester: "Prof. Arjun Mehta",
-    requesterType: "NSS Coordinator",
-    students: ["Emily Johnson", "Michael Chen", "David Brown", "Sarah Williams"],
-    leaveType: "DL",
-    reason: "NSS Regional Camp — Annual Community Outreach",
-    dates: "Mar 28 – Mar 30, 2026",
-    status: "pending",
-    submittedAt: "Today, 9:15 AM",
-    document: "NSS_Camp_Letter_2026.pdf",
-  },
-  {
-    id: "LR002",
-    requester: "Prof. Sneha Iyer",
-    requesterType: "Sports Coordinator",
-    students: ["Jessica Martinez", "Robert Wilson"],
-    leaveType: "DL",
-    reason: "Inter-University Basketball Tournament",
-    dates: "Apr 5 – Apr 7, 2026",
-    status: "pending",
-    submittedAt: "Yesterday, 4:30 PM",
-    document: "Basketball_Tournament_Letter.pdf",
-  },
-  {
-    id: "LR003",
-    requester: "Prof. Rahul Verma",
-    requesterType: "Cultural Coordinator",
-    students: ["Olivia Garcia", "Daniel Moore", "Sophia Lee"],
-    leaveType: "EXEMPTION",
-    reason: "National Level Technical Festival Representatives",
-    dates: "Mar 20 – Mar 22, 2026",
-    status: "approved",
-    submittedAt: "Mar 18, 11:00 AM",
-    document: "Techfest_Participation_Letter.pdf",
-  },
-  {
-    id: "LR004",
-    requester: "Prof. Kavita Sharma",
-    requesterType: "IEEE Student Branch",
-    students: ["Matthew Harris", "Emma Taylor"],
-    leaveType: "DL",
-    reason: "IEEE Regional Conference Paper Presentation",
-    dates: "Mar 15, 2026",
-    status: "rejected",
-    submittedAt: "Mar 12, 3:00 PM",
-    document: "IEEE_Conference_Letter.pdf",
-  },
-];
-
-const statusConfig = {
-  pending: { label: "Pending", color: "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400", icon: Clock },
-  approved: { label: "Approved", color: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400", icon: CheckCircle },
-  rejected: { label: "Rejected", color: "bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400", icon: X },
+const statusConfig: Record<string, any> = {
+  PENDING: { label: "Pending", color: "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400", icon: Clock },
+  APPROVED: { label: "Approved", color: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400", icon: CheckCircle },
+  REJECTED: { label: "Rejected", color: "bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400", icon: X },
 };
 
 const leaveTypeConfig = {
@@ -90,16 +40,34 @@ const leaveTypeConfig = {
 };
 
 export function AdminApprovals() {
-  const [requests, setRequests] = useState(initialRequests);
+  const [requests, setRequests] = useState<LeaveRequest[]>([]);
   const [filter, setFilter] = useState<RequestStatus | "all">("all");
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    api('/leaves')
+      .then(res => setRequests(res.data))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
 
   const filtered = filter === "all" ? requests : requests.filter((r) => r.status === filter);
-  const pendingCount = requests.filter((r) => r.status === "pending").length;
+  const pendingCount = requests.filter((r) => r.status === "PENDING").length;
 
-  const updateStatus = (id: string, status: "approved" | "rejected") => {
-    setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
-    if (expanded === id) setExpanded(null);
+  const updateStatus = async (id: string, status: "APPROVED" | "REJECTED") => {
+    try {
+      await api(`/leaves/${id}/status`, {
+        method: "PUT",
+        body: JSON.stringify({ status: status.toLowerCase() })
+      });
+      setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+      if (expanded === id) setExpanded(null);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update status");
+    }
   };
 
   return (
@@ -122,7 +90,7 @@ export function AdminApprovals() {
           </div>
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-slate-400" />
-            {(["all", "pending", "approved", "rejected"] as const).map((f) => (
+            {(["all", "PENDING", "APPROVED", "REJECTED"] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
@@ -132,7 +100,7 @@ export function AdminApprovals() {
                     : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
                 }`}
               >
-                {f}
+                {f.toLowerCase()}
               </button>
             ))}
           </div>
@@ -170,14 +138,12 @@ export function AdminApprovals() {
                       </div>
                       <div className="font-semibold text-slate-900 dark:text-white truncate">{req.reason}</div>
                       <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        {req.requester} ({req.requesterType}) · {req.dates}
+                        {req.requester.name} · {new Date(req.createdAt).toLocaleDateString()}
                       </div>
                     </div>
                     <div className="flex items-center gap-3 flex-shrink-0">
-                      <div className="flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
-                        <Users className="w-4 h-4" />
-                        <span className="font-semibold">{req.students.length}</span>
-                        <span className="text-xs">students</span>
+                      <div className="flex flex-col items-end gap-1.5 text-sm text-slate-600 dark:text-slate-400">
+                        <span className="font-semibold text-slate-900 dark:text-white">{req.student.name}</span>
                       </div>
                       <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
                     </div>
@@ -194,53 +160,39 @@ export function AdminApprovals() {
                         className="overflow-hidden"
                       >
                         <div className="px-5 pb-5 border-t border-slate-100 dark:border-slate-800 pt-4 space-y-4">
-                          {/* Students */}
-                          <div>
-                            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wide">Affected Students</div>
-                            <div className="flex flex-wrap gap-2">
-                              {req.students.map((s) => (
-                                <span key={s} className="px-3 py-1 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                                  {s}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Document */}
-                          {req.document && (
+                          {req.proofDocumentUrl && (
                             <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
                               <FileText className="w-5 h-5 text-indigo-500 flex-shrink-0" />
-                              <span className="text-sm text-slate-700 dark:text-slate-300 font-medium">{req.document}</span>
-                              <span className="ml-auto text-xs text-indigo-600 dark:text-indigo-400 font-medium cursor-pointer hover:underline">View</span>
+                              <span className="text-sm text-slate-700 dark:text-slate-300 font-medium truncate">{req.proofDocumentUrl.split('/').pop()}</span>
+                              <a href={req.proofDocumentUrl} target="_blank" rel="noreferrer" className="ml-auto text-xs text-indigo-600 dark:text-indigo-400 font-medium cursor-pointer hover:underline">View</a>
                             </div>
                           )}
-
                           {/* Info Banner */}
                           <div className="flex items-start gap-2 p-3 rounded-xl bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 text-xs text-blue-700 dark:text-blue-400">
                             <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                            <p>Approving this request will automatically adjust <strong>Duty Leaves Granted</strong> tallies for all {req.students.length} students across their enrolled courses for the specified dates.</p>
+                            <p>Approving this request will automatically adjust <strong>Duty Leaves Granted</strong> for <strong>{req.student.name}</strong>.</p>
                           </div>
 
                           {/* Action Buttons */}
-                          {req.status === "pending" && (
+                          {req.status === "PENDING" && (
                             <div className="flex gap-3 pt-1">
                               <button
-                                onClick={() => updateStatus(req.id, "approved")}
+                                onClick={() => updateStatus(req.id, "APPROVED")}
                                 className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold text-sm shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 transition-shadow"
                               >
                                 <CheckCircle className="w-4 h-4" /> Approve Request
                               </button>
                               <button
-                                onClick={() => updateStatus(req.id, "rejected")}
+                                onClick={() => updateStatus(req.id, "REJECTED")}
                                 className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-sm hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/20 dark:hover:text-rose-400 transition-colors"
                               >
                                 <X className="w-4 h-4" /> Reject
                               </button>
                             </div>
                           )}
-                          {req.status !== "pending" && (
+                          {req.status !== "PENDING" && (
                             <p className="text-xs text-slate-400 dark:text-slate-600 text-center">
-                              This request has already been {req.status}.
+                              This request has already been {req.status.toLowerCase()}. {req.approver ? `(By ${req.approver.name})` : ''}
                             </p>
                           )}
                         </div>

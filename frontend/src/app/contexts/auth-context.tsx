@@ -1,73 +1,90 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { students, faculties, Student, Faculty } from "../data/mock-data";
+import { api } from "../lib/api";
 
 export type Role = "student" | "faculty" | "admin" | null;
 
-export interface AdminUser {
+export interface AuthUser {
   id: string;
   name: string;
   email: string;
-  role: "System Admin";
+  role: string;
+  department?: { id: string; code: string; name: string };
+  studentProfile?: any;
+  facultyProfile?: any;
+  [key: string]: any;
 }
-
-export type AuthUser = Student | Faculty | AdminUser | null;
 
 interface AuthContextType {
   role: Role;
-  user: AuthUser;
-  login: (role: Role) => void;
-  logout: () => void;
+  user: AuthUser | null;
+  loading: boolean;
+  error: string | null;
+  login: (email: string, password: string, role: Role) => Promise<AuthUser>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const ADMIN_USER: AdminUser = {
-  id: "A001",
-  name: "Admin Smith",
-  email: "admin@university.edu",
-  role: "System Admin",
-};
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<Role>(null);
-  const [user, setUser] = useState<AuthUser>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Load from localeStorage on mount
+  // On mount: try to restore session from cookie via GET /api/auth/me
   useEffect(() => {
-    const savedRole = localStorage.getItem("spa_role") as Role;
-    if (savedRole) {
-      handleLogin(savedRole, false);
-    }
+    restoreSession();
   }, []);
 
-  const handleLogin = (newRole: Role, save = true) => {
-    setRole(newRole);
-    if (save) localStorage.setItem("spa_role", newRole || "");
-
-    switch (newRole) {
-      case "student":
-        setUser(students[0]);
-        break;
-      case "faculty":
-        setUser(faculties[0]);
-        break;
-      case "admin":
-        setUser(ADMIN_USER);
-        break;
-      default:
-        setUser(null);
-        if (save) localStorage.removeItem("spa_role");
+  async function restoreSession() {
+    try {
+      const data = await api("/auth/me");
+      setUser(data.user);
+      setRole(data.user.role.toLowerCase() as Role);
+    } catch {
+      // No valid session — user needs to log in
+      setUser(null);
+      setRole(null);
+    } finally {
+      setLoading(false);
     }
-  };
+  }
 
-  const logout = () => {
-    setRole(null);
+  async function login(email: string, password: string, selectedRole: Role): Promise<AuthUser> {
+    setError(null);
+    setLoading(true);
+    try {
+      const data = await api("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email, password, role: selectedRole }),
+      });
+      setUser(data.user);
+      // Map ADMIN/SUPER_ADMIN to "admin" for frontend routing
+      const frontendRole = data.user.role === "STUDENT" ? "student"
+        : data.user.role === "FACULTY" ? "faculty"
+        : "admin";
+      setRole(frontendRole);
+      return data.user;
+    } catch (err: any) {
+      setError(err.message || "Login failed");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function logout() {
+    try {
+      await api("/auth/logout", { method: "POST" });
+    } catch {
+      // Ignore logout errors
+    }
     setUser(null);
-    localStorage.removeItem("spa_role");
-  };
+    setRole(null);
+  }
 
   return (
-    <AuthContext.Provider value={{ role, user, login: handleLogin, logout }}>
+    <AuthContext.Provider value={{ role, user, loading, error, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { api } from "../lib/api";
 import { motion } from "motion/react";
 import { AdminLayout } from "../components/admin-layout";
 import {
@@ -30,14 +31,6 @@ const weeklyTrend = [
   { week: "W6", cs: 21, ece: 35, mech: 59, it: 16 },
 ];
 
-const departmentBar = [
-  { name: "Computer Science", safe: 85, warning: 10, critical: 5 },
-  { name: "Electronics", safe: 75, warning: 15, critical: 10 },
-  { name: "Mechanical", safe: 60, warning: 25, critical: 15 },
-  { name: "Civil", safe: 70, warning: 20, critical: 10 },
-  { name: "IT", safe: 90, warning: 8, critical: 2 },
-  { name: "First Year", safe: 55, warning: 30, critical: 15 },
-];
 
 function riskColor(score: number): string {
   if (score === 0) return "bg-slate-100 dark:bg-slate-800/30";
@@ -59,6 +52,30 @@ function riskLabel(score: number): string {
 
 export function LeadershipDashboard() {
   const [hoveredCell, setHoveredCell] = useState<{ dept: number; sem: number } | null>(null);
+  const [data, setData] = useState<any>(null);
+
+  useEffect(() => {
+    api('/admin/leadership')
+      .then(res => setData(res.data))
+      .catch(console.error);
+  }, []);
+
+  const deptData = data?.departments || [];
+  const totals = data?.totals || { totalStudents: 0, totalCritical: 0 };
+
+  const departmentBar = deptData.map((d: any) => {
+    const total = d.studentCount || 1;
+    return {
+      name: d.name,
+      safe: Math.round((d.riskDistribution.safe / total) * 100) || 0,
+      warning: Math.round((d.riskDistribution.warning / total) * 100) || 0,
+      critical: Math.round((d.riskDistribution.critical / total) * 100) || 0,
+    };
+  });
+
+  const institutionAvgAtt = deptData.length > 0 
+    ? Math.round(deptData.reduce((acc: number, d: any) => acc + d.avgAttendance, 0) / deptData.length)
+    : 0;
 
   return (
     <AdminLayout activeItem="Leadership Board">
@@ -73,10 +90,10 @@ export function LeadershipDashboard() {
         {/* Global KPIs */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
           {[
-            { label: "Total Departments", value: 6, icon: Building, gradient: "from-blue-500 to-cyan-500" },
-            { label: "Total Students", value: 4500, icon: GraduationCap, gradient: "from-indigo-500 to-violet-500" },
-            { label: "Institution Avg Attendance", value: 78, icon: TrendingUp, gradient: "from-emerald-500 to-teal-500", suffix: "%" },
-            { label: "Critical Cases", value: 142, icon: AlertTriangle, gradient: "from-rose-500 to-red-500" },
+            { label: "Total Departments", value: deptData.length || 6, icon: Building, gradient: "from-blue-500 to-cyan-500" },
+            { label: "Total Students", value: totals.totalStudents || 0, icon: GraduationCap, gradient: "from-indigo-500 to-violet-500" },
+            { label: "Institution Avg Attendance", value: institutionAvgAtt, icon: TrendingUp, gradient: "from-emerald-500 to-teal-500", suffix: "%" },
+            { label: "Critical Cases", value: totals.totalCritical || 0, icon: AlertTriangle, gradient: "from-rose-500 to-red-500" },
           ].map((stat, i) => {
             const Icon = stat.icon;
             return (

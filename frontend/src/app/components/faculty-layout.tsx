@@ -96,7 +96,7 @@ export function FacultyLayout({ children, activeItem }: { children: ReactNode; a
             </div>
             <div className="flex-1 min-w-0">
               <div className="font-semibold text-slate-900 dark:text-white text-sm truncate">{user?.name || "Faculty Member"}</div>
-              <div className="text-xs text-slate-500 dark:text-slate-400 truncate">{(user as any)?.department || "Department"}</div>
+              <div className="text-xs text-slate-500 dark:text-slate-400 truncate">{(user as any)?.department?.name || "Department"}</div>
             </div>
           </div>
         </div>

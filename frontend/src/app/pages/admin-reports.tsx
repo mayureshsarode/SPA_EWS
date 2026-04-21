@@ -1,145 +1,258 @@
-import { useState } from "react";
-import { motion } from "motion/react";
-import { FileText, Download, Filter, Calendar, BarChart3, PieChart, Users, BookOpen, AlertTriangle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { FileText, Download, Filter, Calendar, BarChart3, Users, BookOpen, Clock, Loader2, Plus, X, Search } from "lucide-react";
 import { AdminLayout } from "../components/admin-layout";
+import { api } from "../lib/api";
 
-const mockReports = [
-  { id: 1, name: "Institutional Attendance Summary", type: "Attendance", date: "2024-03-15", size: "2.4 MB", icon: Calendar },
-  { id: 2, name: "CIE Performance Analytics", type: "Marks", date: "2024-03-14", size: "3.1 MB", icon: BarChart3 },
-  { type: "Department", name: "Computer Science Dept Overview", id: 3, date: "2024-03-10", size: "1.8 MB", icon: PieChart },
-  { id: 4, name: "List of Defaulter Students", type: "Alerts", date: "2024-03-08", size: "850 KB", icon: Users },
-  { id: 5, name: "Faculty Workload Distribution", type: "Faculty", date: "2024-03-01", size: "1.2 MB", icon: BookOpen },
-];
+type Report = {
+  id: string;
+  title: string;
+  type: string;
+  date: string;
+  generatedBy: string;
+  status: "COMPLETED" | "PENDING" | "FAILED";
+  fileSize?: string;
+};
 
 export function AdminReports() {
-  const [reportType, setReportType] = useState("all");
+  const [reports, setReports] = useState<Report[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState("ALL");
 
-  const filteredReports = mockReports.filter(r => reportType === "all" || r.type.toLowerCase() === reportType);
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [genForm, setGenForm] = useState({ type: "SUMMARY" });
+
+  useEffect(() => {
+    fetchReports();
+  }, []);
+
+  const fetchReports = () => {
+    api("/admin/reports")
+      .then(res => setReports(res.data))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  };
+
+  const handleGenerate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setGenerating(true);
+    try {
+      await api("/admin/reports/generate", {
+        method: "POST",
+        body: JSON.stringify(genForm),
+      });
+      setShowGenerateModal(false);
+      fetchReports();
+    } catch (err: any) {
+      alert("Failed to generate report: " + err.message);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleDownload = (type: string) => {
+    // This connects to the CSV export endpoints from P1
+    const endpoint = type === 'USERS' ? '/admin/export/users' : '/admin/export/courses';
+    const token = localStorage.getItem("token");
+    fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}${endpoint}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    .then(r => r.text())
+    .then(t => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([t]));
+      a.download = `${type.toLowerCase()}_export.csv`;
+      a.click();
+    });
+  };
+
+  const filteredReports = reports.filter(r => {
+    const matchesSearch = r.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = typeFilter === "ALL" || r.type === typeFilter;
+    return matchesSearch && matchesType;
+  });
 
   return (
     <AdminLayout activeItem="Reports">
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="space-y-6 max-w-6xl mx-auto">
+        <div className="flex flex-col sm:flex-row justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">Reports & Analytics</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Generate and download institutional performance reports</p>
+            <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">Reports & Exports</h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Generate and schedule system-wide data exports</p>
           </div>
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-indigo-500/20 w-full sm:w-auto justify-center">
-            <FileText className="w-5 h-5" />
-            Generate New Report
-          </button>
+          <div className="flex gap-3">
+             <button onClick={() => setShowGenerateModal(true)} className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium flex gap-2 items-center hover:bg-indigo-700 transition">
+               <Plus className="w-5 h-5"/> Generate Report
+             </button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <motion.div
-              className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Recent Reports</h2>
-                <div className="flex items-center gap-2">
-                  <Filter className="w-4 h-4 text-slate-400" />
-                  <select
-                    value={reportType}
-                    onChange={(e) => setReportType(e.target.value)}
-                    className="text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700 dark:text-slate-300"
-                  >
-                    <option value="all">All Types</option>
-                    <option value="attendance">Attendance</option>
-                    <option value="marks">Marks</option>
-                    <option value="department">Department</option>
-                    <option value="alerts">Alerts</option>
-                  </select>
-                </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-2">
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <div className="relative flex-1">
+                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                 <input 
+                   type="text" 
+                   placeholder="Search reports..." 
+                   className="w-full pl-9 pr-4 py-2 border rounded-xl dark:bg-slate-800 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+                   value={searchQuery}
+                   onChange={e => setSearchQuery(e.target.value)}
+                 />
               </div>
+              <select 
+                className="px-4 py-2 border rounded-xl dark:bg-slate-800 dark:border-slate-700 focus:outline-none"
+                value={typeFilter}
+                onChange={e => setTypeFilter(e.target.value)}
+              >
+                 <option value="ALL">All Types</option>
+                 <option value="SUMMARY">Summary Reports</option>
+                 <option value="USERS">User Exports</option>
+                 <option value="COURSES">Course Exports</option>
+              </select>
+            </div>
 
-              <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                {filteredReports.map((report, i) => {
-                  const Icon = report.icon;
-                  return (
-                    <motion.div 
-                      key={report.id}
-                      className="py-4 flex items-center justify-between group"
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.2, delay: i * 0.1 }}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
-                          <Icon className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-slate-900 dark:text-white">{report.name}</p>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                            <span>{report.date}</span>
-                            <span>•</span>
-                            <span className="text-indigo-600 dark:text-indigo-400">{report.type}</span>
-                            <span>•</span>
-                            <span>{report.size}</span>
-                          </p>
-                        </div>
-                      </div>
-                      <button className="p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">
-                        <Download className="w-5 h-5" />
-                      </button>
-                    </motion.div>
-                  );
-                })}
-
-                {filteredReports.length === 0 && (
-                  <div className="py-8 text-center text-slate-500 dark:text-slate-400">
-                    <p className="font-medium">No reports matches the selected filter.</p>
-                  </div>
-                )}
-              </div>
-            </motion.div>
+            <div className="bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+               {loading ? <div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-indigo-500" /></div> : (
+                  <table className="w-full text-left text-sm whitespace-nowrap">
+                    <thead className="bg-slate-50 dark:bg-slate-800/50 border-b dark:border-slate-800 uppercase text-xs font-semibold text-slate-500">
+                      <tr>
+                         <th className="p-4">Report Details</th>
+                         <th className="p-4">Generated By</th>
+                         <th className="p-4">Status</th>
+                         <th className="p-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y dark:divide-slate-800">
+                       {filteredReports.map(r => (
+                         <tr key={r.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                           <td className="p-4">
+                              <div className="flex items-center gap-3">
+                                 <div className="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                                   <FileText className="w-5 h-5"/>
+                                 </div>
+                                 <div>
+                                    <div className="font-bold text-slate-900 dark:text-white">{r.title}</div>
+                                    <div className="text-xs text-slate-500 flex items-center gap-2">
+                                       <span className="font-semibold text-slate-600 dark:text-slate-400">{r.type}</span>
+                                       <span>•</span>
+                                       {new Date(r.date).toLocaleString()}
+                                    </div>
+                                 </div>
+                              </div>
+                           </td>
+                           <td className="p-4 text-slate-600 dark:text-slate-400">{r.generatedBy}</td>
+                           <td className="p-4">
+                              <span className={`px-2 py-1 flex w-fit items-center gap-1.5 rounded-full text-xs font-bold ${
+                                r.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                              }`}>
+                                {r.status === 'COMPLETED' && <CheckCircle className="w-3 h-3" />}
+                                {r.status}
+                              </span>
+                           </td>
+                           <td className="p-4 text-right">
+                              <button disabled className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 font-medium text-xs flex items-center gap-1.5 ml-auto hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                                <Download className="w-3 h-3" /> {r.fileSize}
+                              </button>
+                           </td>
+                         </tr>
+                       ))}
+                       {filteredReports.length === 0 && (
+                          <tr><td colSpan={4} className="p-8 text-center text-slate-500">No reports generated yet.</td></tr>
+                       )}
+                    </tbody>
+                  </table>
+               )}
+            </div>
           </div>
 
           <div className="space-y-6">
-            <motion.div
-              className="bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl p-6 text-white shadow-xl shadow-indigo-500/20"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-            >
-              <FileText className="w-8 h-8 mb-4 opacity-80" />
-              <h3 className="text-xl font-bold mb-2">Automated Reports</h3>
-              <p className="text-indigo-100 text-sm mb-6 leading-relaxed">
-                Set up scheduled reports to be automatically emailed to department heads and administration at the end of every week or month.
-              </p>
-              <button className="w-full bg-white text-indigo-600 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 transition-colors">
-                Configure Schedule
-              </button>
+            <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} className="bg-gradient-to-br from-slate-800 to-slate-950 rounded-2xl p-6 text-white shadow-xl">
+               <h3 className="text-lg font-bold mb-4 flex items-center gap-2"><Download className="w-5 h-5" /> Quick Exports</h3>
+               <div className="space-y-3">
+                  <button onClick={() => handleDownload('USERS')} className="w-full flex items-center justify-between p-3 rounded-xl bg-white/10 hover:bg-white/20 transition group">
+                     <div className="flex items-center gap-3">
+                        <Users className="w-5 h-5 text-indigo-300" />
+                        <div className="text-left">
+                           <p className="font-bold text-sm">All Users CSV</p>
+                           <p className="text-xs text-slate-300">Export student & faculty roster</p>
+                        </div>
+                     </div>
+                     <Download className="w-4 h-4 opacity-50 group-hover:opacity-100 transition" />
+                  </button>
+                  <button onClick={() => handleDownload('COURSES')} className="w-full flex items-center justify-between p-3 rounded-xl bg-white/10 hover:bg-white/20 transition group">
+                     <div className="flex items-center gap-3">
+                        <BookOpen className="w-5 h-5 text-emerald-300" />
+                        <div className="text-left">
+                           <p className="font-bold text-sm">All Courses CSV</p>
+                           <p className="text-xs text-slate-300">Export curriculum data</p>
+                        </div>
+                     </div>
+                     <Download className="w-4 h-4 opacity-50 group-hover:opacity-100 transition" />
+                  </button>
+               </div>
             </motion.div>
 
-            <motion.div
-              className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.3 }}
-            >
-              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-4">Quick Exports</h3>
-              <div className="space-y-3">
-                <button className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left text-sm font-medium text-slate-700 dark:text-slate-300">
-                  <span className="flex items-center gap-2"><Users className="w-4 h-4 text-emerald-500" /> Export All Users (CSV)</span>
-                  <Download className="w-4 h-4 text-slate-400" />
-                </button>
-                <button className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left text-sm font-medium text-slate-700 dark:text-slate-300">
-                  <span className="flex items-center gap-2"><BookOpen className="w-4 h-4 text-blue-500" /> Export All Courses (CSV)</span>
-                  <Download className="w-4 h-4 text-slate-400" />
-                </button>
-                <button className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left text-sm font-medium text-slate-700 dark:text-slate-300">
-                  <span className="flex items-center gap-2"><AlertTriangle className="w-4 h-4 text-rose-500" /> Export Active Alerts (PDF)</span>
-                  <Download className="w-4 h-4 text-slate-400" />
-                </button>
-              </div>
-            </motion.div>
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+               <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4">Storage Info</h3>
+               <div className="space-y-2">
+                 <div className="flex justify-between text-sm">
+                    <span className="text-slate-500">Reports Archived</span>
+                    <span className="font-bold text-slate-900 dark:text-white">{reports.length}</span>
+                 </div>
+                 <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2">
+                    <div className="bg-indigo-500 h-2 rounded-full" style={{ width: '15%' }}></div>
+                 </div>
+                 <p className="text-xs text-slate-500 mt-2">15% of free tier storage used.</p>
+               </div>
+            </div>
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {showGenerateModal && (
+          <motion.div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+             <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowGenerateModal(false)}></div>
+             <motion.form onSubmit={handleGenerate} className="relative z-10 w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-xl overflow-hidden">
+                <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                   <h2 className="text-lg font-bold">Generate System Report</h2>
+                   <button type="button" onClick={() => setShowGenerateModal(false)}><X className="w-5 h-5 opacity-60" /></button>
+                </div>
+                <div className="p-6 space-y-4">
+                   <div>
+                      <label className="block text-sm font-bold mb-2">Report Type</label>
+                      <select className="w-full px-4 py-2.5 border rounded-xl dark:bg-slate-800 dark:border-slate-700 outline-none focus:ring-2 focus:ring-indigo-500" value={genForm.type} onChange={e => setGenForm({ type: e.target.value })}>
+                         <option value="SUMMARY">Executive Summary Report (PDF)</option>
+                         <option value="ACADEMIC">Academic Defaulters Analysis (PDF)</option>
+                         <option value="OPERATIONAL">System Operational Log (CSV)</option>
+                      </select>
+                   </div>
+                   <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-800 dark:text-indigo-300 rounded-xl text-sm leading-relaxed">
+                      This will queue a background job. The report will appear in your history list once generation completes.
+                   </div>
+                </div>
+                <div className="p-6 pt-0 border-slate-200 dark:border-slate-800 flex justify-end">
+                   <button type="submit" disabled={generating} className="w-full px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition flex items-center justify-center gap-2">
+                      {generating && <Loader2 className="w-4 h-4 animate-spin" />}
+                      {generating ? "Generating..." : "Generate Report"}
+                   </button>
+                </div>
+             </motion.form>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </AdminLayout>
+  )
+}
+
+function CheckCircle(props: any) {
+  return (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+    </svg>
   );
 }
