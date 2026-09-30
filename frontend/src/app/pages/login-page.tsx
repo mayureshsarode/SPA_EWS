@@ -56,7 +56,7 @@ export function LoginPage() {
       setEmail("sarang.achyut.joshi@spa-ews.edu.in");
       setPassword("spaews123");
     } else {
-      setEmail("f25ce001@spa-ews.edu.in");
+      setEmail("f24ce001@spa-ews.edu.in");
       setPassword("spaews123");
     }
   };

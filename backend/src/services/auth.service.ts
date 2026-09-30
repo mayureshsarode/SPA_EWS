@@ -15,9 +15,19 @@ interface LoginInput {
  * Validates credentials and returns a signed JWT + user profile.
  */
 export async function loginUser({ email, password, role }: LoginInput) {
-  // 1. Find user by email
-  const user = await prisma.user.findUnique({
-    where: { email: email.toLowerCase().trim() },
+  // 1. Find user by email, raw PRN, or with/without domain
+  const cleanInput = email.toLowerCase().trim();
+  const usernameOnly = cleanInput.split("@")[0];
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { email: cleanInput },
+        { email: `${usernameOnly}@spa-ews.edu.in` },
+        { email: usernameOnly },
+        { studentProfile: { prnNumber: cleanInput } },
+        { studentProfile: { prnNumber: usernameOnly } },
+      ],
+    },
     include: {
       department: true,
       studentProfile: true,

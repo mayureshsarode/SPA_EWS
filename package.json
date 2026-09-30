@@ -4,9 +4,10 @@
   "description": "A comprehensive, role-based platform designed to track student performance, manage attendance, calculate continuous internal evaluation (CIE) metrics, and flag at-risk students through an Early Warning System (EWS).",
   "main": "index.js",
   "scripts": {
+    "db": "cd backend && npm run db",
     "frontend": "cd frontend && npm run dev",
     "backend": "cd backend && npm run dev",
-    "dev": "concurrently -n \"BACKEND,FRONTEND\" -c \"magenta,cyan\" \"npm run backend\" \"npm run frontend\""
+    "dev": "concurrently -n \"DB,BACKEND,FRONTEND\" -c \"yellow,magenta,cyan\" \"npm run db\" \"npm run backend\" \"npm run frontend\""
   },
   "repository": {
     "type": "git",

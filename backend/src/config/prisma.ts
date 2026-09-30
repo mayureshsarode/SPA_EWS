@@ -13,9 +13,13 @@ if (!connectionString) {
   throw new Error("DATABASE_URL is not set in .env file");
 }
 
+const isCloud = connectionString.includes("supabase.com") || 
+                connectionString.includes("neon.tech") || 
+                connectionString.includes("sslmode=require");
+
 const pool = new Pool({
   connectionString,
-  ssl: { rejectUnauthorized: false }, // Required for Supabase cloud
+  ...(isCloud ? { ssl: { rejectUnauthorized: false } } : {}),
 });
 
 // Connection test — logs on startup

@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon src/server.ts",
+    "db": "node scripts/start-db.js",
     "build": "tsc",
     "start": "node dist/server.js",
     "db:generate": "npx prisma generate",
@@ -38,6 +39,7 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.5.0",
+    "embedded-postgres": "^18.4.0-beta.17",
     "nodemon": "^3.1.14",
     "prisma": "^7.6.0",
     "ts-node": "^10.9.2",
